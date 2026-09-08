@@ -9,7 +9,10 @@ export async function middleware(request: NextRequest) {
   // Protected routes: unauthenticated users redirect to /login
   const isProtectedRoute =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/profile");
+    pathname.startsWith("/profile") ||
+    pathname === "/projects" ||
+    pathname.startsWith("/projects/new") ||
+    /^\/projects\/[^/]+\/edit/.test(pathname);
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
