@@ -1,0 +1,77 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { SignOutButton } from "@/components/common/SignOutButton";
+
+export async function Navbar() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-extrabold text-sm shadow-sm">
+              DP
+            </span>
+            <span>DevPair</span>
+          </Link>
+
+          {user && (
+            <nav className="hidden sm:flex items-center gap-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+              <Link
+                href="/dashboard"
+                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/profile"
+                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Profile
+              </Link>
+            </nav>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline-block text-xs font-mono text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate">
+                {user.email}
+              </span>
+              <Link
+                href="/dashboard"
+                className="sm:hidden text-sm font-medium text-zinc-600 dark:text-zinc-400"
+              >
+                Dashboard
+              </Link>
+              <SignOutButton />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="px-3.5 py-1.5 text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="px-3.5 py-1.5 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors"
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
