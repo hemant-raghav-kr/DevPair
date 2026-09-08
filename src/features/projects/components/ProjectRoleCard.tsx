@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import type { ProjectRoleWithSkill } from "../types";
+import type { ApplicationStatus } from "@/features/applications/types";
 
 interface ProjectRoleCardProps {
   role: ProjectRoleWithSkill;
@@ -9,6 +11,10 @@ interface ProjectRoleCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isDeleting?: boolean;
+  acceptedCount?: number;
+  userApplicationStatus?: ApplicationStatus | null;
+  onApply?: () => void;
+  isAuthenticated?: boolean;
 }
 
 export function ProjectRoleCard({
@@ -17,18 +23,30 @@ export function ProjectRoleCard({
   onEdit,
   onDelete,
   isDeleting = false,
+  acceptedCount = 0,
+  userApplicationStatus,
+  onApply,
+  isAuthenticated = false,
 }: ProjectRoleCardProps) {
+  const openSlots = Math.max(0, role.slots - acceptedCount);
+  const isFilled = openSlots === 0;
+
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
       <div className="space-y-2">
-        {/* Header with Title & Slots */}
+        {/* Header with Title & Open Slots */}
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-50 tracking-tight">
             {role.title}
           </h3>
-          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300">
-            <span>Open slots:</span>
-            <span className="font-mono font-bold">{role.slots}</span>
+          <span
+            className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              isFilled
+                ? "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700"
+                : "bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300"
+            }`}
+          >
+            <span>{isFilled ? "Position Filled" : `Open slots: ${openSlots} / ${role.slots}`}</span>
           </span>
         </div>
 
@@ -40,7 +58,7 @@ export function ProjectRoleCard({
         )}
       </div>
 
-      {/* Footer: Required Skill & Owner Actions */}
+      {/* Footer: Required Skill & Action */}
       <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
         {role.skill ? (
           <div className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 px-2.5 py-1 text-xs text-zinc-800 dark:text-zinc-200">
@@ -51,7 +69,8 @@ export function ProjectRoleCard({
           <span className="text-[11px] text-zinc-400 italic">No specific skill required</span>
         )}
 
-        {isOwner && (
+        {/* Owner Controls */}
+        {isOwner ? (
           <div className="flex items-center gap-1">
             {onEdit && (
               <button
@@ -84,6 +103,40 @@ export function ProjectRoleCard({
                   </svg>
                 )}
               </button>
+            )}
+          </div>
+        ) : (
+          /* Non-Owner Apply / Status Controls */
+          <div>
+            {userApplicationStatus === "pending" ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 px-2.5 py-1 rounded-lg">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span>Application Pending</span>
+              </span>
+            ) : userApplicationStatus === "accepted" ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 px-2.5 py-1 rounded-lg">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span>Accepted on Team</span>
+              </span>
+            ) : isFilled ? (
+              <span className="text-xs font-semibold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg">
+                Full
+              </span>
+            ) : isAuthenticated ? (
+              <button
+                type="button"
+                onClick={onApply}
+                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-colors"
+              >
+                <span>Apply for Role</span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/30 hover:bg-blue-100 text-blue-700 dark:text-blue-300 px-3 py-1 text-xs font-semibold transition-colors"
+              >
+                <span>Log in to Apply</span>
+              </Link>
             )}
           </div>
         )}

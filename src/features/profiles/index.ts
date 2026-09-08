@@ -7,3 +7,4 @@ export * from "./components/AvatarPreview";
 export * from "./components/ProfileCard";
 export * from "./components/ProfileEditForm";
 export * from "./components/ProfileContainer";
+export * from "./components/PublicProfileView";

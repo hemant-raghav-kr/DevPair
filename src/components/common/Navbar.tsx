@@ -37,6 +37,12 @@ export async function Navbar() {
                 Projects
               </Link>
               <Link
+                href="/applications"
+                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Applications
+              </Link>
+              <Link
                 href="/profile"
                 className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
@@ -53,10 +59,10 @@ export async function Navbar() {
                 {user.email}
               </span>
               <Link
-                href="/projects"
+                href="/applications"
                 className="sm:hidden text-sm font-medium text-zinc-600 dark:text-zinc-400"
               >
-                Projects
+                Applications
               </Link>
               <SignOutButton />
             </div>

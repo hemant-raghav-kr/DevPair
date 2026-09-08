@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProjectDetail, type ProjectWithDetails, type ProjectRoleWithSkill } from "@/features/projects";
 import type { Skill } from "@/features/skills/types";
 import type { Profile } from "@/features/profiles/types";
+import type { ApplicationStatus } from "@/features/applications/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -139,9 +140,56 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const isOwner = Boolean(user && user.id === formattedProject.owner_id);
 
+  // Derive real accepted application counts per role
+  const { data: acceptedApplications } = await supabase
+    .from("applications")
+    .select("role_id")
+    .eq("project_id", id)
+    .eq("status", "accepted");
+
+  const roleAcceptedCounts: Record<string, number> = {};
+  (acceptedApplications || []).forEach((a) => {
+    if (a.role_id) {
+      roleAcceptedCounts[a.role_id] = (roleAcceptedCounts[a.role_id] || 0) + 1;
+    }
+  });
+
+  // If user is owner, fetch total applications count for review button
+  let totalApplicationsCount = 0;
+  if (isOwner) {
+    const { count } = await supabase
+      .from("applications")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", id);
+    totalApplicationsCount = count || 0;
+  }
+
+  // If user is authenticated and not owner, check if they have applied to any roles on this project
+  const userRoleApplicationStatuses: Record<string, ApplicationStatus | null> = {};
+  if (user && !isOwner) {
+    const { data: userApps } = await supabase
+      .from("applications")
+      .select("role_id, status")
+      .eq("project_id", id)
+      .eq("applicant_id", user.id);
+
+    (userApps || []).forEach((a) => {
+      if (a.role_id) {
+        userRoleApplicationStatuses[a.role_id] = a.status as ApplicationStatus;
+      }
+    });
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <ProjectDetail project={formattedProject} isOwner={isOwner} />
+      <ProjectDetail
+        project={formattedProject}
+        isOwner={isOwner}
+        currentUserId={user?.id || null}
+        roleAcceptedCounts={roleAcceptedCounts}
+        userRoleApplicationStatuses={userRoleApplicationStatuses}
+        totalApplicationsCount={totalApplicationsCount}
+      />
     </main>
   );
 }
