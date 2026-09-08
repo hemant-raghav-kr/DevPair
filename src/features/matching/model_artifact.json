@@ -1,0 +1,47 @@
+{
+  "modelType": "LogisticRegression",
+  "version": "1.0.0",
+  "trainedAt": "2026-09-08T15:58:12.497804+00:00",
+  "randomSeed": 42,
+  "features": [
+    "required_skill_match",
+    "required_skill_proficiency",
+    "skill_category_overlap_ratio",
+    "project_category_alignment",
+    "availability_fit",
+    "total_skills_count_norm",
+    "avg_skill_proficiency",
+    "advanced_skills_count_norm"
+  ],
+  "weights": [
+    5.415307,
+    2.042155,
+    1.541077,
+    1.890229,
+    6.10253,
+    0.725188,
+    -0.044025,
+    0.735422
+  ],
+  "intercept": -11.318878,
+  "evaluationMetrics": {
+    "accuracy": 0.976,
+    "precision": 0.9669,
+    "recall": 0.9832,
+    "f1Score": 0.975,
+    "rocAuc": 0.9966,
+    "confusionMatrix": [
+      [
+        254,
+        8
+      ],
+      [
+        4,
+        234
+      ]
+    ],
+    "testSetSize": 500,
+    "trainSetSize": 2000
+  },
+  "description": "DevPair student-role compatibility classifier trained on synthetic bootstrap data."
+}

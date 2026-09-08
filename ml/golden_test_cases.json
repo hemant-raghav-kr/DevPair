@@ -1,0 +1,206 @@
+[
+  {
+    "id": "test_case_0",
+    "scenario": "partial_match",
+    "features": [
+      0.0,
+      0.0,
+      0.5714,
+      0.442,
+      1.0,
+      0.7,
+      0.6586,
+      0.3012
+    ],
+    "expectedProbability": 0.057316,
+    "expectedScore": 6,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_5",
+    "scenario": "weak_match",
+    "features": [
+      0.0,
+      0.0,
+      0.1343,
+      0.1491,
+      0.6,
+      0.2,
+      0.3039,
+      0.0
+    ],
+    "expectedProbability": 0.000878,
+    "expectedScore": 0,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_10",
+    "scenario": "strong_match",
+    "features": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.8667,
+      0.5,
+      0.8844,
+      0.5607
+    ],
+    "expectedProbability": 0.996297,
+    "expectedScore": 100,
+    "expectedLabel": 1
+  },
+  {
+    "id": "test_case_25",
+    "scenario": "partial_match",
+    "features": [
+      0.0,
+      0.0,
+      0.8,
+      0.6503,
+      1.0,
+      0.5,
+      0.4835,
+      0.305
+    ],
+    "expectedProbability": 0.100774,
+    "expectedScore": 10,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_50",
+    "scenario": "strong_match",
+    "features": [
+      1.0,
+      1.0,
+      0.7778,
+      0.8889,
+      1.0,
+      0.9,
+      0.8163,
+      0.687
+    ],
+    "expectedProbability": 0.998058,
+    "expectedScore": 100,
+    "expectedLabel": 1
+  },
+  {
+    "id": "test_case_75",
+    "scenario": "weak_match",
+    "features": [
+      0.0,
+      0.0,
+      0.1323,
+      0.0564,
+      0.5,
+      0.1,
+      0.3063,
+      0.0
+    ],
+    "expectedProbability": 0.000371,
+    "expectedScore": 0,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_100",
+    "scenario": "partial_match",
+    "features": [
+      1.0,
+      0.333,
+      0.5,
+      0.4224,
+      1.0,
+      0.4,
+      0.5815,
+      0.0987
+    ],
+    "expectedProbability": 0.941861,
+    "expectedScore": 94,
+    "expectedLabel": 1
+  },
+  {
+    "id": "test_case_150",
+    "scenario": "weak_match",
+    "features": [
+      0.0,
+      0.0,
+      0.1513,
+      0.1903,
+      0.6667,
+      0.3,
+      0.4374,
+      0.0
+    ],
+    "expectedProbability": 0.001564,
+    "expectedScore": 0,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_200",
+    "scenario": "partial_match",
+    "features": [
+      0.0,
+      0.0,
+      0.1429,
+      0.7195,
+      1.0,
+      0.7,
+      0.512,
+      0.2263
+    ],
+    "expectedProbability": 0.048127,
+    "expectedScore": 5,
+    "expectedLabel": 0
+  },
+  {
+    "id": "test_case_300",
+    "scenario": "strong_match",
+    "features": [
+      1.0,
+      1.0,
+      0.75,
+      0.875,
+      0.8667,
+      0.8,
+      0.8939,
+      0.6679
+    ],
+    "expectedProbability": 0.99488,
+    "expectedScore": 99,
+    "expectedLabel": 1
+  },
+  {
+    "id": "test_case_400",
+    "scenario": "partial_match",
+    "features": [
+      1.0,
+      0.333,
+      0.8,
+      0.7413,
+      1.0,
+      0.5,
+      0.4609,
+      0.1601
+    ],
+    "expectedProbability": 0.981533,
+    "expectedScore": 98,
+    "expectedLabel": 1
+  },
+  {
+    "id": "test_case_490",
+    "scenario": "strong_match",
+    "features": [
+      1.0,
+      1.0,
+      0.5714,
+      0.7143,
+      1.0,
+      0.7,
+      0.9195,
+      0.377
+    ],
+    "expectedProbability": 0.994602,
+    "expectedScore": 99,
+    "expectedLabel": 1
+  }
+]
