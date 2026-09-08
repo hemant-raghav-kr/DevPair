@@ -22,34 +22,49 @@ export async function Navbar() {
             <span>DevPair</span>
           </Link>
 
-          {user && (
-            <nav className="hidden sm:flex items-center gap-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <nav className="hidden sm:flex items-center gap-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/discover"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  Discover Projects
+                </Link>
+                <Link
+                  href="/applications"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  My Applications
+                </Link>
+                <Link
+                  href="/projects"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  My Projects
+                </Link>
+                <Link
+                  href="/profile"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  Profile
+                </Link>
+              </>
+            ) : (
               <Link
-                href="/dashboard"
+                href="/discover"
                 className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
-                Dashboard
+                Discover Projects
               </Link>
-              <Link
-                href="/projects"
-                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                Projects
-              </Link>
-              <Link
-                href="/applications"
-                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                Applications
-              </Link>
-              <Link
-                href="/profile"
-                className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                Profile
-              </Link>
-            </nav>
-          )}
+            )}
+          </nav>
         </div>
 
         <div className="flex items-center gap-3">
@@ -59,15 +74,21 @@ export async function Navbar() {
                 {user.email}
               </span>
               <Link
-                href="/applications"
+                href="/discover"
                 className="sm:hidden text-sm font-medium text-zinc-600 dark:text-zinc-400"
               >
-                Applications
+                Discover
               </Link>
               <SignOutButton />
             </div>
           ) : (
             <div className="flex items-center gap-2">
+              <Link
+                href="/discover"
+                className="sm:hidden px-2 py-1 text-sm font-medium text-zinc-600 dark:text-zinc-400"
+              >
+                Discover
+              </Link>
               <Link
                 href="/login"
                 className="px-3.5 py-1.5 text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
