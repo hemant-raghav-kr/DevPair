@@ -1,12 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { calculateMatch } from "@/features/matching";
+import { calculateMatch, getCandidateProfileForUser } from "@/features/matching";
 import type {
   CandidateProfile,
-  CandidateSkill,
   TargetProject,
   TargetRole,
 } from "@/features/matching/types";
-import type { ProficiencyLevel, Skill } from "@/features/skills/types";
+import type { Skill } from "@/features/skills/types";
 import type { ApplicationStatus } from "@/features/applications/types";
 import type {
   DiscoveryFilters,
@@ -265,48 +264,8 @@ export async function getDiscoverProjects(
       }
     });
 
-    // Fetch user profile and skills for ML compatibility calculation
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, username, full_name, avatar_url, college, availability_hours_per_week")
-      .eq("id", currentUser.id)
-      .single();
-
-    if (profile) {
-      const { data: userSkillsData } = await supabase
-        .from("user_skills")
-        .select("skill_id, proficiency, skill:skills(id, name, category)");
-
-      interface RawUserSkillItem {
-        skill_id: string;
-        proficiency: string;
-        skill: Skill | Skill[] | null;
-      }
-
-      const formattedSkills: CandidateSkill[] = (
-        (userSkillsData as unknown as RawUserSkillItem[]) || []
-      )
-        .filter((s) => s.skill !== null)
-        .map((s) => {
-          const rawS = Array.isArray(s.skill) ? s.skill[0] : s.skill;
-          return {
-            skill_id: s.skill_id,
-            name: rawS?.name || "Skill",
-            category: rawS?.category || "other",
-            proficiency: s.proficiency as ProficiencyLevel,
-          };
-        });
-
-      candidate = {
-        id: profile.id,
-        username: profile.username,
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-        college: profile.college,
-        availability_hours_per_week: profile.availability_hours_per_week ?? 10,
-        skills: formattedSkills,
-      };
-    }
+    // Fetch user profile and skills using canonical matching service
+    candidate = await getCandidateProfileForUser(currentUser.id, supabase);
   }
 
   // 7. Format Discovery Projects and compute ML scores
@@ -361,10 +320,13 @@ export async function getDiscoverProjects(
         id: rawProj.id,
         owner_id: rawProj.owner_id,
         title: rawProj.title,
+        tagline: rawProj.tagline,
         category: rawProj.category,
         status: rawProj.status,
         visibility: rawProj.visibility,
         is_hackathon: rawProj.is_hackathon,
+        hackathon_name: rawProj.hackathon_name,
+        hackathon_deadline: rawProj.hackathon_deadline,
       };
 
       for (const role of formattedRoles) {
@@ -376,11 +338,22 @@ export async function getDiscoverProjects(
             description: role.description,
             required_skill_id: role.required_skill_id,
             slots: role.slots,
-            skill: role.skill,
+            skill: role.skill
+              ? {
+                  id: role.skill.id,
+                  name: role.skill.name,
+                  category: role.skill.category,
+                }
+              : null,
           };
 
           const matchResult = calculateMatch(candidate, targetRole, targetProj);
-          if (!bestMatch || matchResult.score > bestMatch.score) {
+          if (
+            !bestMatch ||
+            matchResult.score > bestMatch.score ||
+            (matchResult.score === bestMatch.score &&
+              matchResult.probability > bestMatch.probability)
+          ) {
             bestMatch = matchResult;
             bestRole = role;
           }

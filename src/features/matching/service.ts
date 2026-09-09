@@ -70,13 +70,14 @@ interface RawProjectQuery {
 }
 
 /**
- * Recommends top matching projects for a student based on ML compatibility scores
+ * Fetches and formats the candidate profile with verified skills and availability for a user.
+ * This is the canonical single source of truth used across Dashboard recommendations and Project Discovery.
  */
-export async function getRecommendedProjectsForUser(
+export async function getCandidateProfileForUser(
   studentId: string,
-  limit: number = 6
-): Promise<ProjectRecommendation[]> {
-  const supabase = await createClient();
+  supabaseClient?: Awaited<ReturnType<typeof createClient>>
+): Promise<CandidateProfile | null> {
+  const supabase = supabaseClient || (await createClient());
 
   // 1. Fetch student profile under RLS
   const { data: profile } = await supabase
@@ -86,7 +87,7 @@ export async function getRecommendedProjectsForUser(
     .single();
 
   if (!profile) {
-    return [];
+    return null;
   }
 
   // 2. Fetch student skills joined with skills taxonomy
@@ -109,7 +110,7 @@ export async function getRecommendedProjectsForUser(
       };
     });
 
-  const candidate: CandidateProfile = {
+  return {
     id: profile.id,
     username: profile.username,
     full_name: profile.full_name,
@@ -118,6 +119,22 @@ export async function getRecommendedProjectsForUser(
     availability_hours_per_week: profile.availability_hours_per_week ?? 10,
     skills: formattedSkills,
   };
+}
+
+/**
+ * Recommends top matching projects for a student based on ML compatibility scores
+ */
+export async function getRecommendedProjectsForUser(
+  studentId: string,
+  limit: number = 6
+): Promise<ProjectRecommendation[]> {
+  const supabase = await createClient();
+
+  // 1. Fetch student profile under RLS using canonical shared function
+  const candidate = await getCandidateProfileForUser(studentId, supabase);
+  if (!candidate) {
+    return [];
+  }
 
   // 3. Fetch recruiting public projects (excluding projects owned by student)
   const { data: projectsData, error: projErr } = await supabase
@@ -226,8 +243,12 @@ export async function getRecommendedProjectsForUser(
     }
 
     if (roleMatches.length > 0) {
-      // Best-fit role aggregation: highest compatibility score
-      roleMatches.sort((a, b) => b.match.score - a.match.score);
+      // Best-fit role aggregation: highest compatibility score, breaking ties with probability
+      roleMatches.sort(
+        (a, b) =>
+          b.match.score - a.match.score ||
+          b.match.probability - a.match.probability
+      );
       const best = roleMatches[0];
 
       recommendations.push({
