@@ -8,6 +8,8 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes: unauthenticated users redirect to /login
   const isProtectedRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/notifications") ||
     pathname.startsWith("/dashboard") ||
     pathname === "/profile" ||
     pathname === "/profile/" ||

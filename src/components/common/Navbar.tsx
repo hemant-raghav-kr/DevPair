@@ -2,12 +2,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/common/SignOutButton";
 import { NotificationBell } from "@/features/notifications";
+import { checkIsAdmin } from "@/lib/auth/admin";
 
 export async function Navbar() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const isAdmin = user ? await checkIsAdmin(user.id) : false;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
@@ -74,6 +77,14 @@ export async function Navbar() {
               <span className="hidden md:inline-block text-xs font-mono text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate">
                 {user.email}
               </span>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                >
+                  Admin Portal
+                </Link>
+              )}
               <Link
                 href="/discover"
                 className="sm:hidden text-sm font-medium text-zinc-600 dark:text-zinc-400"
