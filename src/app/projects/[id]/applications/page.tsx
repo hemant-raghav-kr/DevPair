@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import {
   ProjectApplicationsContainer,
   type ApplicationWithOwnerView,
@@ -53,6 +54,11 @@ export default async function ProjectApplicationsPage({ params }: PageProps) {
 
   if (!user) {
     redirect(`/login?next=/projects/${id}/applications`);
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch project under RLS

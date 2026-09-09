@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import { NotificationsContainer, type Notification } from "@/features/notifications";
 
 export const metadata = {
@@ -16,6 +17,11 @@ export default async function NotificationsPage() {
 
   if (!user) {
     redirect("/login?next=/notifications");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch initial notifications and unread count under RLS

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import {
   EditProjectContainer,
   type Project,
@@ -26,6 +27,11 @@ export default async function EditProjectPage({ params }: PageProps) {
 
   if (!user) {
     redirect(`/login?next=/projects/${id}/edit`);
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch project under RLS

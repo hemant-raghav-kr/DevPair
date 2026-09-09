@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Notification, NotificationToastItem } from "../types";
 
@@ -20,6 +20,7 @@ export function useRealtimeNotifications({
   const [toasts, setToasts] = useState<NotificationToastItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(!initialNotifications.length && !!userId);
   const supabaseRef = useRef(createClient());
+  const hookId = useId().replace(/[^a-zA-Z0-9]/g, "");
 
   // Fetch initial notifications if not supplied
   const fetchNotifications = useCallback(async () => {
@@ -93,9 +94,12 @@ export function useRealtimeNotifications({
       })();
     }
 
-    const channelName = `realtime:notifications:${userId}`;
-    const channel = supabase
-      .channel(channelName)
+    // Use unique channel topic per component instance to prevent collisions
+    // when multiple components (e.g., NotificationBell + NotificationsContainer) mount concurrently
+    const channelName = `notifications:${userId}:${hookId}`;
+    const channel = supabase.channel(channelName);
+
+    channel
       .on(
         "postgres_changes",
         {
@@ -105,6 +109,7 @@ export function useRealtimeNotifications({
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          if (isCancelled) return;
           if (payload.eventType === "INSERT") {
             const newNotif = payload.new as Notification;
             setNotifications((prev) => {
@@ -152,13 +157,17 @@ export function useRealtimeNotifications({
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error("[DevPair Realtime] Subscription error:", err);
+        }
+      });
 
     return () => {
       isCancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchNotifications, initialNotifications.length]);
+  }, [userId, hookId, initialNotifications.length]);
 
   // Mark single as read
   const markAsRead = useCallback(

@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/profile" ||
     pathname === "/profile/" ||
     pathname.startsWith("/applications") ||
+    pathname.startsWith("/complaints") ||
     pathname === "/projects" ||
     pathname.startsWith("/projects/new") ||
     /^\/projects\/[^/]+\/edit/.test(pathname) ||

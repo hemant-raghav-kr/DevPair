@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/common/SignOutButton";
 import { NotificationBell } from "@/features/notifications";
 import { checkIsAdmin, checkIsSuperAdmin } from "@/lib/auth/admin";
+import { MobileNav } from "@/components/common/MobileNav";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -96,14 +97,15 @@ export async function Navbar() {
                   {isSuperAdmin ? "Super Admin" : "Admin Portal"}
                 </Link>
               )}
-              <Link
-                href="/discover"
-                className="sm:hidden text-sm font-medium text-zinc-600 dark:text-zinc-400"
-              >
-                Discover
-              </Link>
               <NotificationBell userId={user.id} />
-              <SignOutButton />
+              <div className="hidden sm:block">
+                <SignOutButton />
+              </div>
+              <MobileNav
+                userEmail={user.email}
+                isAdmin={isAdmin}
+                isSuperAdmin={isSuperAdmin}
+              />
             </div>
           ) : (
             <div className="flex items-center gap-2">

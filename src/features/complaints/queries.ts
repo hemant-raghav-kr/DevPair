@@ -88,7 +88,12 @@ export async function getMyComplaints(): Promise<ComplaintSummary[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("[DevPair Complaints] Error fetching user complaints:", error);
+    console.error("[DevPair Complaints] Error fetching user complaints:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return [];
   }
 
@@ -391,8 +396,11 @@ export async function getAdminComplaints(
   }
 
   if (filter.search && filter.search.trim()) {
-    const term = `%${filter.search.trim()}%`;
-    query = query.or(`subject.ilike.${term},description.ilike.${term}`);
+    const cleanTerm = filter.search.trim().replace(/[,()]/g, " ").replace(/\s+/g, " ").trim();
+    if (cleanTerm) {
+      const term = `%${cleanTerm}%`;
+      query = query.or(`subject.ilike.${term},description.ilike.${term}`);
+    }
   }
 
   if (filter.sort === "oldest") {
@@ -407,7 +415,12 @@ export async function getAdminComplaints(
   const { data, count, error } = await query;
 
   if (error) {
-    console.error("[DevPair Complaints] Error querying admin complaints queue:", error);
+    console.error("[DevPair Complaints] Error querying admin complaints queue:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return {
       complaints: [],
       total: 0,
