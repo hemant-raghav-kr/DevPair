@@ -60,6 +60,12 @@ export async function Navbar() {
                 >
                   Profile
                 </Link>
+                <Link
+                  href="/complaints"
+                  className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  Reports
+                </Link>
               </>
             ) : (
               <Link

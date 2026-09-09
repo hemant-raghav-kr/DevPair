@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PublicProfileView } from "@/features/profiles";
+import { ReportButton } from "@/features/complaints/components/ReportButton";
 import type { Skill, UserSkillWithDetails, ProficiencyLevel } from "@/features/skills/types";
 
 interface PageProps {
@@ -97,7 +98,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
           <span>Back to Projects</span>
         </Link>
 
-        {isOwnProfile && (
+        {isOwnProfile ? (
           <Link
             href="/profile"
             className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400"
@@ -107,7 +108,15 @@ export default async function PublicProfilePage({ params }: PageProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </Link>
-        )}
+        ) : currentUser ? (
+          <ReportButton
+            targetType="user"
+            reportedUsername={profile.username}
+            targetTitle={`@${profile.username}`}
+            buttonLabel="Report User"
+            variant="outline"
+          />
+        ) : null}
       </div>
 
       {/* Public Profile Card */}

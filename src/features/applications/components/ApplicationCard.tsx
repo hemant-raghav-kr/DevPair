@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
+import { ReportButton } from "@/features/complaints/components/ReportButton";
 import { formatDate } from "@/lib/utils";
 import type { ApplicationWithDetails } from "../types";
 
@@ -105,20 +106,30 @@ export function ApplicationCard({
         </div>
       )}
 
-      {/* Footer: Date & Withdraw Action */}
+      {/* Footer: Date & Actions */}
       <div className="pt-2 flex items-center justify-between text-xs text-zinc-400">
         <span>Submitted {formatDate(application.created_at)}</span>
 
-        {application.status === "pending" && (
-          <button
-            type="button"
-            disabled={isWithdrawing}
-            onClick={handleWithdraw}
-            className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors disabled:opacity-50"
-          >
-            {isWithdrawing ? "Withdrawing..." : "Withdraw Application"}
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          <ReportButton
+            targetType="application"
+            reportedApplicationId={application.id}
+            targetTitle={`Application for ${application.project?.title || "Project"}`}
+            buttonLabel="Report Issue"
+            variant="subtle"
+          />
+
+          {application.status === "pending" && (
+            <button
+              type="button"
+              disabled={isWithdrawing}
+              onClick={handleWithdraw}
+              className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors disabled:opacity-50"
+            >
+              {isWithdrawing ? "Withdrawing..." : "Withdraw Application"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

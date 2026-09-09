@@ -6,6 +6,7 @@ import { AvatarPreview } from "@/features/profiles/components/AvatarPreview";
 import { ProjectRoleCard } from "./ProjectRoleCard";
 import { DeleteProjectButton } from "./DeleteProjectButton";
 import { ApplyModal } from "@/features/applications/components/ApplyModal";
+import { ReportButton } from "@/features/complaints/components/ReportButton";
 import { formatDate } from "@/lib/utils";
 import type {
   ProjectWithDetails,
@@ -121,6 +122,16 @@ export function ProjectDetail({
               redirectTo="/projects"
             />
           </div>
+        )}
+
+        {!isOwner && currentUserId && (
+          <ReportButton
+            targetType="project"
+            reportedProjectId={project.id}
+            targetTitle={project.title}
+            buttonLabel="Report Project"
+            variant="outline"
+          />
         )}
       </div>
 
