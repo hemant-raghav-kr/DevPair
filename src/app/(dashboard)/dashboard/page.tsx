@@ -53,7 +53,7 @@ export default async function DashboardPage() {
             Active Student Session
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Welcome back, {profile?.full_name || profile?.username || user.email}
+            Welcome back, {profile?.full_name || profile?.username || "Student"}
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Discover peer projects, manage applications, and collaborate with college developers.
@@ -85,36 +85,9 @@ export default async function DashboardPage() {
         hasSkills={(skillsCount ?? 0) > 0}
       />
 
-      {/* Account & Profile Summary Cards */}
+      {/* Student Profile Summary */}
       <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-mono">
-          Account Status & Synchronization
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-3 shadow-xs">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Auth Account (auth.users)
-            </h3>
-            <div className="space-y-1.5 text-xs font-mono">
-              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-zinc-500">User ID:</span>
-                <span className="text-zinc-800 dark:text-zinc-200 truncate max-w-[200px] sm:max-w-[240px]">
-                  {user.id}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-zinc-500">Email:</span>
-                <span className="text-zinc-800 dark:text-zinc-200">{user.email}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-zinc-500">Created:</span>
-                <span className="text-zinc-800 dark:text-zinc-200">
-                  {new Date(user.created_at).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-
+        <div className="max-w-xl">
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-3 shadow-xs">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Student Profile (public.profiles)
