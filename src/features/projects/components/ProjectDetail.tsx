@@ -152,12 +152,12 @@ export function ProjectDetail({
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 space-y-6 shadow-sm">
         {/* Badges Bar */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs uppercase font-mono tracking-wider font-semibold rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-zinc-600 dark:text-zinc-400">
+          <span className="text-xs uppercase font-mono tracking-wider font-semibold rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
             {project.category.replace(/_/g, " ")}
           </span>
 
           <span
-            className={`text-xs uppercase font-mono font-semibold rounded-md border px-2.5 py-1 ${
+            className={`text-xs uppercase font-mono font-semibold rounded-md border px-2.5 py-1 whitespace-nowrap ${
               statusStyles[project.status as ProjectStatus] || statusStyles.recruiting
             }`}
           >
@@ -165,7 +165,7 @@ export function ProjectDetail({
           </span>
 
           <span
-            className={`text-xs font-mono capitalize rounded-md border px-2 py-0.5 ${
+            className={`text-xs font-mono capitalize rounded-md border px-2 py-0.5 whitespace-nowrap ${
               visibilityStyles[project.visibility as ProjectVisibility] ||
               visibilityStyles.public
             }`}
@@ -174,7 +174,7 @@ export function ProjectDetail({
           </span>
 
           {project.is_hackathon && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1 whitespace-nowrap">
               <span>⚡ Hackathon Project</span>
               {project.hackathon_name && (
                 <span>• {project.hackathon_name}</span>

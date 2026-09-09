@@ -47,13 +47,13 @@ export function ProjectCard({
         {/* Badges Bar: Category, Status, Visibility, Hackathon */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Category */}
-          <span className="text-[10px] uppercase font-mono tracking-wider font-semibold rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-zinc-600 dark:text-zinc-400">
+          <span className="text-[10px] uppercase font-mono tracking-wider font-semibold rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
             {project.category.replace(/_/g, " ")}
           </span>
 
           {/* Status */}
           <span
-            className={`text-[10px] uppercase font-mono font-semibold rounded-md border px-2 py-0.5 ${
+            className={`text-[10px] uppercase font-mono font-semibold rounded-md border px-2 py-0.5 whitespace-nowrap ${
               statusStyles[project.status as ProjectStatus] || statusStyles.recruiting
             }`}
           >
@@ -62,7 +62,7 @@ export function ProjectCard({
 
           {/* Visibility */}
           <span
-            className={`text-[10px] font-mono capitalize rounded-md border px-1.5 py-0.5 ${
+            className={`text-[10px] font-mono capitalize rounded-md border px-1.5 py-0.5 whitespace-nowrap ${
               visibilityStyles[project.visibility as ProjectVisibility] ||
               visibilityStyles.public
             }`}
@@ -72,7 +72,7 @@ export function ProjectCard({
 
           {/* Hackathon Indicator */}
           {project.is_hackathon && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 whitespace-nowrap">
               <span>⚡ Hackathon</span>
               {project.hackathon_name && (
                 <span className="font-normal opacity-80">
@@ -89,7 +89,7 @@ export function ProjectCard({
             href={`/projects/${project.id}`}
             className="group block"
           >
-            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
               {project.title}
             </h3>
           </Link>

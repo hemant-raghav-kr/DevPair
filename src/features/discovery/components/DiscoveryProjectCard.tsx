@@ -57,17 +57,17 @@ export function DiscoveryProjectCard({
       <div className="space-y-4">
         {/* Card Header: Category, Hackathon & ML Score */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-2xs uppercase tracking-wider font-semibold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+            <span className="text-2xs uppercase tracking-wider font-semibold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
               {project.category.replace(/_/g, " ")}
             </span>
             {project.is_hackathon && (
-              <span className="text-2xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+              <span className="text-2xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900 whitespace-nowrap">
                 Hackathon
               </span>
             )}
             {project.status !== "recruiting" && (
-              <span className="text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+              <span className="text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 whitespace-nowrap">
                 {project.status}
               </span>
             )}
@@ -76,7 +76,7 @@ export function DiscoveryProjectCard({
           {/* AI Compatibility Badge */}
           {match && !isOwner && (
             <div
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-2xs ${scoreBadgeColor}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-2xs shrink-0 ${scoreBadgeColor}`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${scoreProgressColor}`} />
               <span className="text-sm font-extrabold">{match.score}%</span>
@@ -87,7 +87,7 @@ export function DiscoveryProjectCard({
 
         {/* Title & Tagline */}
         <div>
-          <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50 line-clamp-1">
+          <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50 line-clamp-2 leading-snug">
             <Link
               href={`/projects/${project.id}`}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -96,11 +96,11 @@ export function DiscoveryProjectCard({
             </Link>
           </h3>
           {project.tagline ? (
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-1">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">
               {project.tagline}
             </p>
           ) : (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">
               {project.description}
             </p>
           )}
@@ -130,12 +130,12 @@ export function DiscoveryProjectCard({
             <div className="flex items-center justify-between text-2xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-mono">
               <span>Best Fit for You:</span>
               <span className="text-blue-600 dark:text-blue-400 font-bold lowercase">
-                {match.tier}
+                {match.tier.replace(/_/g, " ")}
               </span>
             </div>
-            <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
-              <span>{bestRole.title}</span>
-              <span className="font-mono text-2xs text-zinc-500">
+            <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100 flex items-center justify-between gap-2">
+              <span className="truncate">{bestRole.title}</span>
+              <span className="font-mono text-2xs text-zinc-500 shrink-0">
                 {bestRole.openSlots} {bestRole.openSlots === 1 ? "slot" : "slots"}
               </span>
             </div>
@@ -195,17 +195,19 @@ export function DiscoveryProjectCard({
               {displayRoles.map((role) => (
                 <div
                   key={role.id}
-                  className="flex items-center justify-between gap-2 text-xs py-1 px-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800/80"
+                  className="flex items-center justify-between gap-3 text-xs py-1.5 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800/80 min-w-0"
                 >
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200 truncate">
+                  <span className="font-medium text-zinc-800 dark:text-zinc-200 truncate min-w-0">
                     {role.title}
                   </span>
                   {role.skill && (
-                    <SkillBadge
-                      name={role.skill.name}
-                      category={role.skill.category}
-                      className="text-3xs px-1.5 py-0.5"
-                    />
+                    <div className="shrink-0">
+                      <SkillBadge
+                        name={role.skill.name}
+                        category={role.skill.category}
+                        className="text-3xs px-2 py-0.5"
+                      />
+                    </div>
                   )}
                 </div>
               ))}

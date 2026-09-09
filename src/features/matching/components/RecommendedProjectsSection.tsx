@@ -38,11 +38,26 @@ export function RecommendedProjectsSection({
       </div>
 
       {recommendations.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recommendations.map((rec) => (
-            <RecommendationCard key={rec.project.id} recommendation={rec} />
-          ))}
-        </div>
+        recommendations.length === 1 ? (
+          <div className="w-full">
+            <RecommendationCard
+              recommendation={recommendations[0]}
+              isFeatured={true}
+            />
+          </div>
+        ) : recommendations.length === 2 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {recommendations.map((rec) => (
+              <RecommendationCard key={rec.project.id} recommendation={rec} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {recommendations.map((rec) => (
+              <RecommendationCard key={rec.project.id} recommendation={rec} />
+            ))}
+          </div>
+        )
       ) : !hasSkills ? (
         <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 text-center space-y-4 bg-white dark:bg-zinc-900/40">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">

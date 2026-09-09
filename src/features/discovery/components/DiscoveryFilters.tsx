@@ -122,13 +122,13 @@ export function DiscoveryFiltersPanel({
         <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-mono">
           Project Type
         </label>
-        <div className="grid grid-cols-3 gap-1.5 bg-zinc-100 dark:bg-zinc-800/60 p-1 rounded-xl">
+        <div className="grid grid-cols-3 gap-1 bg-zinc-100 dark:bg-zinc-800/60 p-1 rounded-xl">
           <button
             type="button"
             onClick={() => onFilterChange({ hackathon: "all" })}
-            className={`rounded-lg py-1.5 text-2xs font-semibold text-center transition-all ${
+            className={`rounded-lg py-2 px-1 text-xs font-semibold text-center transition-all min-w-0 truncate ${
               activeHackathon === "all"
-                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs"
+                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
@@ -137,9 +137,9 @@ export function DiscoveryFiltersPanel({
           <button
             type="button"
             onClick={() => onFilterChange({ hackathon: "hackathon" })}
-            className={`rounded-lg py-1.5 text-2xs font-semibold text-center transition-all ${
+            className={`rounded-lg py-2 px-1 text-xs font-semibold text-center transition-all min-w-0 truncate ${
               activeHackathon === "hackathon"
-                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold"
+                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-xs font-bold"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
@@ -148,9 +148,9 @@ export function DiscoveryFiltersPanel({
           <button
             type="button"
             onClick={() => onFilterChange({ hackathon: "non_hackathon" })}
-            className={`rounded-lg py-1.5 text-2xs font-semibold text-center transition-all ${
+            className={`rounded-lg py-2 px-1 text-xs font-semibold text-center transition-all min-w-0 truncate ${
               activeHackathon === "non_hackathon"
-                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs"
+                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
@@ -214,7 +214,7 @@ export function DiscoveryFiltersPanel({
   return (
     <>
       {/* Desktop View */}
-      <aside className="hidden lg:block w-64 shrink-0 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs self-start sticky top-20">
+      <aside className="hidden lg:block w-72 shrink-0 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs self-start sticky top-20">
         {content}
       </aside>
 
