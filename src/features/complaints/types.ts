@@ -42,7 +42,39 @@ export interface ComplaintDetail extends ComplaintSummary {
   reporterName?: string | null;
   reporterUsername?: string | null;
   reporterEmail?: string | null;
+  reporterAvatarUrl?: string | null;
+  reporterCollege?: string | null;
+
   reportedUserEmail?: string | null;
+  reportedUserAvatarUrl?: string | null;
+  reportedUserCollege?: string | null;
+  reportedUserBio?: string | null;
+  reportedUserSkills?: { name: string; proficiency: number }[];
+  reportedUserIsBanned?: boolean;
+  reportedUserBanReason?: string | null;
+  reportedUserBannedAt?: string | null;
+
+  reportedProject?: {
+    id: string;
+    title: string;
+    tagline?: string | null;
+    description?: string | null;
+    category?: string | null;
+    status?: string | null;
+    owner?: { id: string; name: string; username: string; email?: string | null; avatar_url?: string | null } | null;
+    roles?: { id: string; title: string; skillName?: string | null; slots: number }[];
+  } | null;
+
+  reportedApplication?: {
+    id: string;
+    message: string;
+    status: string;
+    created_at: string;
+    applicant?: { id: string; name: string; username: string; email?: string | null; avatar_url?: string | null } | null;
+    project?: { id: string; title: string } | null;
+    role?: { id: string; title: string } | null;
+  } | null;
+
   admin_notes?: string | null;
   resolved_by?: string | null;
   resolverEmail?: string | null;

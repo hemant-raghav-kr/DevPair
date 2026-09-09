@@ -273,6 +273,7 @@ export async function updateComplaintStatusAction(
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/admin");
     revalidatePath("/admin/complaints");
     revalidatePath(`/admin/complaints/${complaintId}`);
     revalidatePath("/complaints");
@@ -310,6 +311,7 @@ export async function updateComplaintPriorityAction(
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/admin");
     revalidatePath("/admin/complaints");
     revalidatePath(`/admin/complaints/${complaintId}`);
 
@@ -341,6 +343,7 @@ export async function updateComplaintNotesAction(
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/admin");
     revalidatePath("/admin/complaints");
     revalidatePath(`/admin/complaints/${complaintId}`);
 

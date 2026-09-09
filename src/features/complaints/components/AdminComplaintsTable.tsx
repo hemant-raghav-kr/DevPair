@@ -170,8 +170,13 @@ export function AdminComplaintsTable({ initialResult }: AdminComplaintsTableProp
                   return (
                     <tr
                       key={c.id}
-                      className={`hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors ${
-                        isUrgent && c.status === "pending" ? "bg-red-50/30 dark:bg-red-950/10" : ""
+                      onClick={() => router.push(`/admin/complaints/${c.id}`)}
+                      className={`cursor-pointer hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors ${
+                        isUrgent && c.status === "pending"
+                          ? "bg-red-50/50 dark:bg-red-950/20 border-l-4 border-l-red-500"
+                          : c.status === "pending"
+                          ? "bg-amber-50/30 dark:bg-amber-950/10 border-l-4 border-l-amber-500"
+                          : "border-l-4 border-l-transparent"
                       }`}
                     >
                       <td className="px-5 py-4 whitespace-nowrap">
@@ -194,7 +199,7 @@ export function AdminComplaintsTable({ initialResult }: AdminComplaintsTableProp
                         </p>
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {c.reporterUsername ? (
                           <Link
                             href={`/profile/${c.reporterUsername}`}
@@ -210,7 +215,7 @@ export function AdminComplaintsTable({ initialResult }: AdminComplaintsTableProp
                         </span>
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {c.reportedUserUsername ? (
                           <Link
                             href={`/profile/${c.reportedUserUsername}`}
@@ -237,15 +242,22 @@ export function AdminComplaintsTable({ initialResult }: AdminComplaintsTableProp
                       </td>
 
                       <td className="px-5 py-4 whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400">
-                        {new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        <div>
+                          <span>Created: {new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                        </div>
+                        {c.updated_at && c.updated_at !== c.created_at && (
+                          <div className="text-[10px] text-zinc-400">
+                            Updated: {new Date(c.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          </div>
+                        )}
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap text-right">
+                      <td className="px-5 py-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
                         <Link
                           href={`/admin/complaints/${c.id}`}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 transition-colors shadow-sm"
                         >
-                          Investigate
+                          Investigate &rarr;
                         </Link>
                       </td>
                     </tr>

@@ -46,8 +46,8 @@ interface AdminComplaintQueryRow {
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
-  reporter: { username: string; full_name: string } | null;
-  reported_user: { username: string; full_name: string } | null;
+  reporter: { username: string; full_name: string; avatar_url: string | null; college: string | null } | null;
+  reported_user: { username: string; full_name: string; avatar_url: string | null; college: string | null; bio: string | null } | null;
   reported_project: { title: string } | null;
 }
 
@@ -138,8 +138,8 @@ export async function getAdminComplaintById(complaintId: string): Promise<Compla
       resolved_at,
       created_at,
       updated_at,
-      reporter:profiles!complaints_reporter_id_fkey(username, full_name),
-      reported_user:profiles!complaints_reported_user_id_fkey(username, full_name),
+      reporter:profiles!complaints_reporter_id_fkey(username, full_name, avatar_url, college),
+      reported_user:profiles!complaints_reported_user_id_fkey(username, full_name, avatar_url, college, bio),
       reported_project:projects!complaints_reported_project_id_fkey(title)
     `)
     .eq("id", complaintId)
@@ -170,6 +170,137 @@ export async function getAdminComplaintById(complaintId: string): Promise<Compla
     console.error("[DevPair Complaints] Error resolving auth emails:", err);
   }
 
+  // Fetch reported user skills and ban status
+  let reportedUserSkills: { name: string; proficiency: number }[] = [];
+  let reportedUserIsBanned = false;
+  let reportedUserBanReason: string | null = null;
+  let reportedUserBannedAt: string | null = null;
+
+  if (raw.reported_user_id) {
+    try {
+      const [skillsRes, banRes] = await Promise.all([
+        adminSupabase
+          .from("user_skills")
+          .select("proficiency, skill:skills(name)")
+          .eq("user_id", raw.reported_user_id),
+        adminSupabase
+          .from("user_bans")
+          .select("banned, ban_reason, banned_at")
+          .eq("user_id", raw.reported_user_id)
+          .maybeSingle(),
+      ]);
+
+      if (skillsRes.data) {
+        reportedUserSkills = (skillsRes.data as unknown as Array<{ proficiency: number; skill: { name: string } | null }>).map((item) => ({
+          name: item.skill?.name || "Skill",
+          proficiency: item.proficiency,
+        }));
+      }
+
+      if (banRes.data && banRes.data.banned) {
+        reportedUserIsBanned = true;
+        reportedUserBanReason = banRes.data.ban_reason;
+        reportedUserBannedAt = banRes.data.banned_at;
+      }
+    } catch (err) {
+      console.error("[DevPair Complaints] Error querying reported user details:", err);
+    }
+  }
+
+  // Fetch reported project details
+  let reportedProject: ComplaintDetail["reportedProject"] = null;
+  if (raw.reported_project_id) {
+    try {
+      const { data: projData } = await adminSupabase
+        .from("projects")
+        .select(`
+          id,
+          title,
+          tagline,
+          description,
+          category,
+          status,
+          owner:profiles!projects_owner_id_fkey(id, username, full_name, avatar_url),
+          roles:project_roles(id, title, slots, skill:skills(name))
+        `)
+        .eq("id", raw.reported_project_id)
+        .maybeSingle();
+
+      if (projData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const p = projData as any;
+        reportedProject = {
+          id: p.id,
+          title: p.title,
+          tagline: p.tagline,
+          description: p.description,
+          category: p.category,
+          status: p.status,
+          owner: p.owner
+            ? {
+                id: p.owner.id,
+                name: p.owner.full_name,
+                username: p.owner.username,
+                avatar_url: p.owner.avatar_url,
+              }
+            : null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          roles: (p.roles || []).map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            skillName: r.skill?.name || null,
+            slots: r.slots,
+          })),
+        };
+      }
+    } catch (err) {
+      console.error("[DevPair Complaints] Error querying reported project:", err);
+    }
+  }
+
+  // Fetch reported application details
+  let reportedApplication: ComplaintDetail["reportedApplication"] = null;
+  if (raw.reported_application_id) {
+    try {
+      const { data: appData } = await adminSupabase
+        .from("applications")
+        .select(`
+          id,
+          message,
+          status,
+          created_at,
+          applicant:profiles!applications_applicant_id_fkey(id, username, full_name, avatar_url),
+          project:projects!applications_project_id_fkey(id, title),
+          role:project_roles!applications_role_id_fkey(id, title)
+        `)
+        .eq("id", raw.reported_application_id)
+        .maybeSingle();
+
+      if (appData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const a = appData as any;
+        reportedApplication = {
+          id: a.id,
+          message: a.message,
+          status: a.status,
+          created_at: a.created_at,
+          applicant: a.applicant
+            ? {
+                id: a.applicant.id,
+                name: a.applicant.full_name,
+                username: a.applicant.username,
+                avatar_url: a.applicant.avatar_url,
+              }
+            : null,
+          project: a.project ? { id: a.project.id, title: a.project.title } : null,
+          role: a.role ? { id: a.role.id, title: a.role.title } : null,
+        };
+      }
+    } catch (err) {
+      console.error("[DevPair Complaints] Error querying reported application:", err);
+    }
+  }
+
   return {
     id: raw.id,
     reporter_id: raw.reporter_id,
@@ -189,10 +320,21 @@ export async function getAdminComplaintById(complaintId: string): Promise<Compla
     reporterName: raw.reporter?.full_name || null,
     reporterUsername: raw.reporter?.username || null,
     reporterEmail,
+    reporterAvatarUrl: raw.reporter?.avatar_url || null,
+    reporterCollege: raw.reporter?.college || null,
     reportedUserName: raw.reported_user?.full_name || null,
     reportedUserUsername: raw.reported_user?.username || null,
     reportedUserEmail,
+    reportedUserAvatarUrl: raw.reported_user?.avatar_url || null,
+    reportedUserCollege: raw.reported_user?.college || null,
+    reportedUserBio: raw.reported_user?.bio || null,
+    reportedUserSkills,
+    reportedUserIsBanned,
+    reportedUserBanReason,
+    reportedUserBannedAt,
     reportedProjectTitle: raw.reported_project?.title || null,
+    reportedProject,
+    reportedApplication,
     resolverEmail,
   };
 }
@@ -332,4 +474,16 @@ export async function getAdminComplaintStats() {
     resolved: resolvedRes.count || 0,
     activeUrgent: highPriorityRes.count || 0,
   };
+}
+
+/**
+ * Retrieves the most recent complaints for the admin overview dashboard.
+ */
+export async function getRecentAdminComplaints(limit: number = 5): Promise<ComplaintDetail[]> {
+  const result = await getAdminComplaints({
+    page: 1,
+    pageSize: limit,
+    sort: "newest",
+  });
+  return result.complaints;
 }

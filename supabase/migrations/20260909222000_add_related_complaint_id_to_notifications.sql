@@ -1,0 +1,85 @@
+-- ==============================================================================
+-- DevPair Migration: Add related_complaint_id to notifications & link admin notifications
+-- ==============================================================================
+
+-- 1. Add related_complaint_id column to public.notifications
+ALTER TABLE public.notifications 
+  ADD COLUMN IF NOT EXISTS related_complaint_id UUID REFERENCES public.complaints(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_notifications_complaint ON public.notifications (related_complaint_id) WHERE related_complaint_id IS NOT NULL;
+
+-- 2. Update trigger to pass related_complaint_id
+CREATE OR REPLACE FUNCTION public.handle_complaint_notifications()
+RETURNS TRIGGER AS $$
+DECLARE
+  admin_rec RECORD;
+  display_ref TEXT;
+  status_msg TEXT;
+BEGIN
+  display_ref := '#CP-' || upper(substr(NEW.id::text, 1, 8));
+
+  -- On INSERT: Notify all active platform administrators that have a valid profile
+  IF TG_OP = 'INSERT' THEN
+    FOR admin_rec IN 
+      SELECT a.user_id 
+      FROM public.admin_users a
+      INNER JOIN public.profiles p ON p.id = a.user_id
+      WHERE a.is_active = true
+    LOOP
+      INSERT INTO public.notifications (
+        user_id,
+        type,
+        title,
+        message,
+        related_project_id,
+        related_application_id,
+        related_complaint_id
+      ) VALUES (
+        admin_rec.user_id,
+        'general',
+        'New Complaint Submitted (' || display_ref || ')',
+        'A student submitted a complaint regarding ' || replace(NEW.category, '_', ' ') || ': "' || NEW.subject || '". Click to investigate.',
+        NEW.reported_project_id,
+        NEW.reported_application_id,
+        NEW.id
+      );
+    END LOOP;
+  END IF;
+
+  -- On UPDATE: Notify the reporter if the status transitioned
+  IF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM NEW.status THEN
+    IF NEW.status = 'under_review' THEN
+      status_msg := 'Your complaint (' || display_ref || ') is now under active review by platform moderators.';
+    ELSIF NEW.status = 'resolved' THEN
+      status_msg := 'Your complaint (' || display_ref || ') has been investigated and resolved.';
+    ELSIF NEW.status = 'dismissed' THEN
+      status_msg := 'Your complaint (' || display_ref || ') was reviewed and dismissed by moderators.';
+    ELSE
+      status_msg := 'Your complaint (' || display_ref || ') status changed to ' || replace(NEW.status, '_', ' ') || '.';
+    END IF;
+
+    -- Verify reporter profile exists before inserting notification
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE id = NEW.reporter_id) THEN
+      INSERT INTO public.notifications (
+        user_id,
+        type,
+        title,
+        message,
+        related_project_id,
+        related_application_id,
+        related_complaint_id
+      ) VALUES (
+        NEW.reporter_id,
+        'general',
+        'Complaint Status: ' || initcap(replace(NEW.status, '_', ' ')),
+        status_msg,
+        NEW.reported_project_id,
+        NEW.reported_application_id,
+        NEW.id
+      );
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;

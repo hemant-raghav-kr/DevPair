@@ -10,11 +10,13 @@ interface AdminSidebarProps {
   adminEmail: string;
   role?: AdminRole;
   isSuperAdmin?: boolean;
+  pendingComplaintsCount?: number;
 }
 
 export function AdminSidebar({
   adminEmail,
   isSuperAdmin = false,
+  pendingComplaintsCount = 0,
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -173,7 +175,15 @@ export function AdminSidebar({
                   >
                     {item.icon}
                   </span>
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.href === "/admin/complaints" && pendingComplaintsCount > 0 && (
+                    <span
+                      title={`${pendingComplaintsCount} pending complaint${pendingComplaintsCount === 1 ? "" : "s"}`}
+                      className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-zinc-950 shadow-sm"
+                    >
+                      {pendingComplaintsCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -302,6 +302,7 @@ export type Database = {
           message: string
           read: boolean
           related_application_id: string | null
+          related_complaint_id: string | null
           related_project_id: string | null
           title: string
           type: string
@@ -313,6 +314,7 @@ export type Database = {
           message: string
           read?: boolean
           related_application_id?: string | null
+          related_complaint_id?: string | null
           related_project_id?: string | null
           title: string
           type: string
@@ -324,6 +326,7 @@ export type Database = {
           message?: string
           read?: boolean
           related_application_id?: string | null
+          related_complaint_id?: string | null
           related_project_id?: string | null
           title?: string
           type?: string

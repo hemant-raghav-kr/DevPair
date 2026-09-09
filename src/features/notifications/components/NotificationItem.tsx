@@ -44,10 +44,23 @@ export function NotificationItem({
   const isWithdrawn =
     notification.title.toLowerCase().includes("withdrawn") ||
     notification.message.toLowerCase().includes("withdrew");
+  const isComplaint =
+    Boolean(notification.related_complaint_id) ||
+    notification.title.toLowerCase().includes("complaint");
+  const isAdminComplaint =
+    Boolean(notification.related_complaint_id) &&
+    (notification.title.toLowerCase().includes("new complaint") ||
+      notification.message.toLowerCase().includes("click to investigate"));
 
   // Determine target URL
   let targetUrl = "";
-  if (notification.related_project_id) {
+  if (notification.related_complaint_id) {
+    if (isAdminComplaint) {
+      targetUrl = `/admin/complaints/${notification.related_complaint_id}`;
+    } else {
+      targetUrl = "/complaints";
+    }
+  } else if (notification.related_project_id) {
     if (notification.type === "application_received") {
       targetUrl = `/projects/${notification.related_project_id}/applications`;
     } else if (notification.type === "application_status_updated") {
@@ -61,6 +74,15 @@ export function NotificationItem({
 
   // Get icon
   const renderIcon = () => {
+    if (isComplaint) {
+      return (
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </span>
+      );
+    }
     if (notification.type === "application_received") {
       return (
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
@@ -157,7 +179,11 @@ export function NotificationItem({
               }}
               className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
             >
-              View details &rarr;
+              {targetUrl.startsWith("/admin/complaints")
+                ? "Investigate complaint \u2192"
+                : targetUrl.startsWith("/complaints")
+                ? "View report status \u2192"
+                : "View details \u2192"}
             </Link>
           ) : (
             <span />
