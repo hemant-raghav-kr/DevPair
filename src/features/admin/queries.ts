@@ -1,10 +1,16 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/auth/admin";
+import {
+  requireAdmin,
+  CANONICAL_SUPER_ADMIN_UUID,
+  CANONICAL_SUPER_ADMIN_EMAIL,
+  type AdminRole,
+} from "@/lib/auth/admin";
 import type {
   AdminOverviewMetrics,
   AdminUserItem,
+  AdminListItem,
   AdminProjectItem,
   AdminApplicationItem,
   PaginatedResult,
@@ -149,7 +155,7 @@ export async function getAdminUsersList({
   const userIds = profiles.map((p) => p.id);
 
   // Fetch relational aggregates for this page of users
-  const [skillsRes, projectsRes, appsRes, adminsRes] = await Promise.all([
+  const [skillsRes, projectsRes, appsRes, adminsRes, bansRes, authUsersRes] = await Promise.all([
     supabase
       .from("user_skills")
       .select("user_id")
@@ -164,9 +170,14 @@ export async function getAdminUsersList({
       .in("applicant_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]),
     supabase
       .from("admin_users")
-      .select("user_id")
+      .select("user_id, role, is_active")
+      .in("user_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]),
+    supabase
+      .from("user_bans")
+      .select("user_id, banned, ban_reason, banned_at")
       .in("user_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"])
-      .eq("is_active", true),
+      .eq("banned", true),
+    supabase.auth.admin.listUsers({ perPage: 1000 }),
   ]);
 
   const skillCounts = new Map<string, number>();
@@ -184,22 +195,51 @@ export async function getAdminUsersList({
     appCounts.set(a.applicant_id, (appCounts.get(a.applicant_id) || 0) + 1);
   });
 
-  const adminSet = new Set(adminsRes.data?.map((a) => a.user_id) || []);
+  const adminMap = new Map<string, { role: AdminRole; is_active: boolean }>();
+  adminsRes.data?.forEach((a) => {
+    adminMap.set(a.user_id, {
+      role: (a.role as AdminRole) || "admin",
+      is_active: a.is_active,
+    });
+  });
 
-  const data: AdminUserItem[] = profiles.map((p) => ({
-    id: p.id,
-    username: p.username,
-    full_name: p.full_name,
-    avatar_url: p.avatar_url,
-    college: p.college,
-    course: p.course,
-    graduation_year: p.graduation_year,
-    created_at: p.created_at,
-    skillCount: skillCounts.get(p.id) || 0,
-    projectCount: projectCounts.get(p.id) || 0,
-    applicationCount: appCounts.get(p.id) || 0,
-    isAdmin: adminSet.has(p.id),
-  }));
+  const banMap = new Map<string, { ban_reason: string; banned_at: string }>();
+  bansRes.data?.forEach((b) => {
+    banMap.set(b.user_id, {
+      ban_reason: b.ban_reason,
+      banned_at: b.banned_at,
+    });
+  });
+
+  const emailMap = new Map<string, string>();
+  authUsersRes.data?.users?.forEach((u) => {
+    if (u.email) emailMap.set(u.id, u.email);
+  });
+
+  const data: AdminUserItem[] = profiles.map((p) => {
+    const adminInfo = adminMap.get(p.id);
+    const banInfo = banMap.get(p.id);
+
+    return {
+      id: p.id,
+      username: p.username,
+      full_name: p.full_name,
+      email: emailMap.get(p.id) || null,
+      avatar_url: p.avatar_url,
+      college: p.college,
+      course: p.course,
+      graduation_year: p.graduation_year,
+      created_at: p.created_at,
+      skillCount: skillCounts.get(p.id) || 0,
+      projectCount: projectCounts.get(p.id) || 0,
+      applicationCount: appCounts.get(p.id) || 0,
+      isAdmin: !!adminInfo?.is_active,
+      adminRole: adminInfo ? adminInfo.role : null,
+      isBanned: !!banInfo,
+      banReason: banInfo ? banInfo.ban_reason : null,
+      bannedAt: banInfo ? banInfo.banned_at : null,
+    };
+  });
 
   const total = count || 0;
   return {
@@ -209,6 +249,64 @@ export async function getAdminUsersList({
     pageSize,
     totalPages: Math.ceil(total / pageSize),
   };
+}
+
+/**
+ * Fetch all registered administrators.
+ * Used for /admin/admins directory view.
+ */
+export async function getAdminsList(): Promise<AdminListItem[]> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const [adminUsersRes, authUsersRes] = await Promise.all([
+    supabase
+      .from("admin_users")
+      .select("user_id, role, is_active, created_at")
+      .order("created_at", { ascending: true }),
+    supabase.auth.admin.listUsers({ perPage: 1000 }),
+  ]);
+
+  if (adminUsersRes.error || !adminUsersRes.data) {
+    return [];
+  }
+
+  const userIds = adminUsersRes.data.map((a) => a.user_id);
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, username, avatar_url")
+    .in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  const profileMap = new Map<string, { full_name: string; username: string; avatar_url: string | null }>();
+  profiles?.forEach((p) => {
+    profileMap.set(p.id, {
+      full_name: p.full_name,
+      username: p.username,
+      avatar_url: p.avatar_url,
+    });
+  });
+
+  const emailMap = new Map<string, string>();
+  authUsersRes.data?.users?.forEach((u) => {
+    if (u.email) emailMap.set(u.id, u.email);
+  });
+
+  return adminUsersRes.data.map((a) => {
+    const prof = profileMap.get(a.user_id);
+    const isCanonical = a.user_id === CANONICAL_SUPER_ADMIN_UUID;
+
+    return {
+      userId: a.user_id,
+      email: emailMap.get(a.user_id) || (isCanonical ? CANONICAL_SUPER_ADMIN_EMAIL : null),
+      full_name: prof?.full_name || (isCanonical ? "hk9981" : "Admin User"),
+      username: prof?.username || (isCanonical ? "hk9981" : "admin"),
+      avatar_url: prof?.avatar_url || null,
+      role: (a.role as AdminRole) || "admin",
+      is_active: a.is_active,
+      created_at: a.created_at,
+      isCanonical,
+    };
+  });
 }
 
 /**

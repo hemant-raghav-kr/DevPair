@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import { MyProjectsContainer, type ProjectWithRoleCount } from "@/features/projects";
 
 export const metadata = {
@@ -36,6 +37,11 @@ export default async function MyProjectsPage() {
 
   if (!user) {
     redirect("/login?next=/projects");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch projects owned by the current user under RLS

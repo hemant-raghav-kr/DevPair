@@ -4,12 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/common/SignOutButton";
+import type { AdminRole } from "@/lib/auth/admin";
 
 interface AdminSidebarProps {
   adminEmail: string;
+  role?: AdminRole;
+  isSuperAdmin?: boolean;
 }
 
-export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
+export function AdminSidebar({
+  adminEmail,
+  isSuperAdmin = false,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -54,6 +60,16 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
         </svg>
       ),
     },
+    {
+      label: "Admins",
+      href: "/admin/admins",
+      exact: false,
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -61,8 +77,12 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
       {/* Mobile top bar */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-zinc-950 text-white border-b border-zinc-800">
         <div className="flex items-center gap-2 font-bold text-base">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 text-white font-extrabold text-xs">
-            ADM
+          <span
+            className={`flex h-7 w-7 items-center justify-center rounded-lg text-white font-extrabold text-xs ${
+              isSuperAdmin ? "bg-purple-600" : "bg-red-600"
+            }`}
+          >
+            {isSuperAdmin ? "SUP" : "ADM"}
           </span>
           <span>DevPair Admin</span>
         </div>
@@ -91,15 +111,25 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
         <div className="space-y-6">
           {/* Brand header */}
           <div className="hidden lg:flex items-center gap-3 px-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-white font-extrabold text-sm shadow-md shadow-red-900/40">
-              ADM
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-lg text-white font-extrabold text-sm shadow-md ${
+                isSuperAdmin
+                  ? "bg-purple-600 shadow-purple-900/40"
+                  : "bg-red-600 shadow-red-900/40"
+              }`}
+            >
+              {isSuperAdmin ? "SUP" : "ADM"}
             </span>
             <div>
               <h2 className="text-sm font-bold text-white tracking-tight leading-tight">
                 DevPair Admin
               </h2>
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-red-400">
-                Privileged Portal
+              <span
+                className={`text-[10px] uppercase font-bold tracking-wider ${
+                  isSuperAdmin ? "text-purple-400" : "text-red-400"
+                }`}
+              >
+                {isSuperAdmin ? "Super Admin Portal" : "Privileged Portal"}
               </span>
             </div>
           </div>
@@ -122,7 +152,15 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
                       : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
                   }`}
                 >
-                  <span className={isActive ? "text-red-400" : "text-zinc-500"}>
+                  <span
+                    className={
+                      isActive
+                        ? isSuperAdmin
+                          ? "text-purple-400"
+                          : "text-red-400"
+                        : "text-zinc-500"
+                    }
+                  >
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
@@ -145,8 +183,15 @@ export function AdminSidebar({ adminEmail }: AdminSidebarProps) {
           </Link>
 
           <div className="px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/50">
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
-              Authenticated Admin
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
+                {isSuperAdmin ? "Super Admin" : "Administrator"}
+              </span>
+              {isSuperAdmin && (
+                <span className="text-xs text-amber-500" title="Super Administrator">
+                  ★
+                </span>
+              )}
             </div>
             <div className="text-xs font-mono text-zinc-300 truncate mt-0.5">
               {adminEmail}

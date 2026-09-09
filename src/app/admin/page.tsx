@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAdminOverviewMetrics } from "@/features/admin";
+import { getAdminOverviewMetrics } from "@/features/admin/queries";
 
 export const metadata = {
   title: "Admin Overview | DevPair",

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import { NewProjectContainer } from "@/features/projects";
 
 export const metadata = {
@@ -16,6 +17,11 @@ export default async function NewProjectPage() {
 
   if (!user) {
     redirect("/login?next=/projects/new");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   return (

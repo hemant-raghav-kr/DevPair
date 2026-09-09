@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { getAdminUsersList } from "@/features/admin";
+import { getAdminUsersList } from "@/features/admin/queries";
+import { requireAdmin, CANONICAL_SUPER_ADMIN_UUID } from "@/lib/auth/admin";
+import { UserModerationActions } from "./components/UserModerationActions";
 
 export const metadata = {
   title: "Student Management | DevPair Admin",
-  description: "Search and inspect registered student profiles and activity.",
+  description: "Search, inspect, and moderate registered student profiles and platform status.",
 };
 
 interface AdminUsersPageProps {
@@ -14,6 +16,7 @@ interface AdminUsersPageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
+  const adminContext = await requireAdmin();
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10) || 1;
   const search = params.search || "";
@@ -40,7 +43,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </span>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Browse and inspect registered student profiles, technical skills, and platform engagement.
+            Browse and inspect registered student profiles, technical skills, ban status, and moderation actions.
           </p>
         </div>
 
@@ -76,12 +79,12 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
           <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/75 dark:bg-zinc-900/75 text-xs uppercase font-semibold text-zinc-500 dark:text-zinc-400">
             <tr>
               <th className="px-5 py-3.5">Student</th>
-              <th className="px-4 py-3.5">Academic Background</th>
-              <th className="px-4 py-3.5 text-center">Skills</th>
-              <th className="px-4 py-3.5 text-center">Projects</th>
-              <th className="px-4 py-3.5 text-center">Applications</th>
+              <th className="px-4 py-3.5">Academic</th>
+              <th className="px-4 py-3.5 text-center">Activity</th>
+              <th className="px-4 py-3.5">Status</th>
               <th className="px-4 py-3.5">Role</th>
-              <th className="px-5 py-3.5 text-right">Joined</th>
+              <th className="px-4 py-3.5">Joined</th>
+              <th className="px-5 py-3.5 text-right">Moderation</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
@@ -98,6 +101,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                   day: "numeric",
                   year: "numeric",
                 });
+                const isCanonical = u.id === CANONICAL_SUPER_ADMIN_UUID;
 
                 return (
                   <tr key={u.id} className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors">
@@ -116,60 +120,100 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                           <Link
                             href={`/profile/${u.username}`}
                             target="_blank"
-                            className="font-medium text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors block truncate"
+                            className="font-medium text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors block truncate max-w-[160px]"
                           >
                             {u.full_name}
                           </Link>
-                          <span className="text-xs text-zinc-400 font-mono">@{u.username}</span>
+                          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                            <span className="font-mono">@{u.username}</span>
+                            {u.email && (
+                              <>
+                                <span>&bull;</span>
+                                <span className="truncate max-w-[140px]" title={u.email}>{u.email}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
 
                     {/* Academic */}
                     <td className="px-4 py-3.5 text-xs text-zinc-600 dark:text-zinc-300">
-                      <div className="font-medium truncate max-w-[180px]">{u.college || "—"}</div>
-                      <div className="text-zinc-400 truncate max-w-[180px]">
+                      <div className="font-medium truncate max-w-[160px]">{u.college || "—"}</div>
+                      <div className="text-zinc-400 truncate max-w-[160px]">
                         {u.course ? `${u.course}${u.graduation_year ? ` '` + u.graduation_year.toString().slice(-2) : ""}` : "—"}
                       </div>
                     </td>
 
-                    {/* Skills count */}
-                    <td className="px-4 py-3.5 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                        {u.skillCount}
-                      </span>
+                    {/* Activity (Skills, Projects, Applications) */}
+                    <td className="px-4 py-3.5 text-center text-xs">
+                      <div className="flex items-center justify-center gap-2">
+                        <span title="Skills" className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                          {u.skillCount} sk
+                        </span>
+                        <span title="Projects Owned" className="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                          {u.projectCount} pr
+                        </span>
+                        <span title="Applications" className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                          {u.applicationCount} ap
+                        </span>
+                      </div>
                     </td>
 
-                    {/* Projects owned */}
-                    <td className="px-4 py-3.5 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
-                        {u.projectCount}
-                      </span>
-                    </td>
-
-                    {/* Applications */}
-                    <td className="px-4 py-3.5 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                        {u.applicationCount}
-                      </span>
+                    {/* Status (Active / Banned) */}
+                    <td className="px-4 py-3.5 text-xs">
+                      {u.isBanned ? (
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-900">
+                            Banned
+                          </span>
+                          {u.banReason && (
+                            <div className="text-[10px] text-zinc-400 max-w-[140px] truncate" title={u.banReason}>
+                              {u.banReason}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                          Active
+                        </span>
+                      )}
                     </td>
 
                     {/* Role */}
                     <td className="px-4 py-3.5">
-                      {u.isAdmin ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900">
+                      {u.adminRole === "super_admin" ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                          SUPER ADMIN
+                        </span>
+                      ) : u.isAdmin ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-900">
                           ADMIN
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                           Student
                         </span>
                       )}
                     </td>
 
                     {/* Joined */}
-                    <td className="px-5 py-3.5 text-right text-xs text-zinc-400 whitespace-nowrap">
+                    <td className="px-4 py-3.5 text-xs text-zinc-400 whitespace-nowrap">
                       {joinedFormatted}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                      <UserModerationActions
+                        userId={u.id}
+                        username={u.username}
+                        fullName={u.full_name}
+                        isBanned={u.isBanned}
+                        banReason={u.banReason}
+                        isAdmin={u.isAdmin}
+                        isViewerSuperAdmin={adminContext.isSuperAdmin}
+                        isCanonical={isCanonical}
+                      />
                     </td>
                   </tr>
                 );

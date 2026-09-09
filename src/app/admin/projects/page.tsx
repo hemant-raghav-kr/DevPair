@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAdminProjectsList } from "@/features/admin";
+import { getAdminProjectsList } from "@/features/admin/queries";
 
 export const metadata = {
   title: "Project Management | DevPair Admin",

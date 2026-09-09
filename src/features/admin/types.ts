@@ -1,3 +1,5 @@
+import type { AdminRole } from "@/lib/auth/admin";
+
 export interface AdminOverviewMetrics {
   totalUsers: number;
   recentUsers: number;
@@ -18,6 +20,7 @@ export interface AdminUserItem {
   id: string;
   username: string;
   full_name: string;
+  email: string | null;
   avatar_url: string | null;
   college: string | null;
   course: string | null;
@@ -27,6 +30,22 @@ export interface AdminUserItem {
   projectCount: number;
   applicationCount: number;
   isAdmin: boolean;
+  adminRole: AdminRole | null;
+  isBanned: boolean;
+  banReason: string | null;
+  bannedAt: string | null;
+}
+
+export interface AdminListItem {
+  userId: string;
+  email: string | null;
+  full_name: string;
+  username: string;
+  avatar_url: string | null;
+  role: AdminRole;
+  is_active: boolean;
+  created_at: string;
+  isCanonical: boolean;
 }
 
 export interface AdminProjectItem {

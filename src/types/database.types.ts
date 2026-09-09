@@ -44,18 +44,21 @@ export type Database = {
           created_at: string
           created_by: string | null
           is_active: boolean
+          role: string
           user_id: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           is_active?: boolean
+          role?: string
           user_id: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
           is_active?: boolean
+          role?: string
           user_id?: string
         }
         Relationships: [
@@ -68,6 +71,45 @@ export type Database = {
           },
           {
             foreignKeyName: "admin_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_bans: {
+        Row: {
+          banned: boolean
+          banned_at: string
+          banned_by: string | null
+          ban_reason: string
+          user_id: string
+        }
+        Insert: {
+          banned?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          ban_reason: string
+          user_id: string
+        }
+        Update: {
+          banned?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          ban_reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bans_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_bans_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"

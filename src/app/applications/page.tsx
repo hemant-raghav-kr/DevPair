@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsBanned } from "@/lib/auth/admin";
 import {
   MyApplicationsContainer,
   type ApplicationWithDetails,
@@ -62,6 +63,11 @@ export default async function MyApplicationsPage() {
 
   if (!user) {
     redirect("/login?next=/applications");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch applicant's join requests under RLS

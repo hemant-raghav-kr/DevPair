@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/common/SignOutButton";
 import { NotificationBell } from "@/features/notifications";
-import { checkIsAdmin } from "@/lib/auth/admin";
+import { checkIsAdmin, checkIsSuperAdmin } from "@/lib/auth/admin";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -11,6 +11,7 @@ export async function Navbar() {
   } = await supabase.auth.getUser();
 
   const isAdmin = user ? await checkIsAdmin(user.id) : false;
+  const isSuperAdmin = user ? await checkIsSuperAdmin(user.id) : false;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
@@ -80,9 +81,13 @@ export async function Navbar() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-colors ${
+                    isSuperAdmin
+                      ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-900 hover:bg-purple-100 dark:hover:bg-purple-900/50"
+                      : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/50"
+                  }`}
                 >
-                  Admin Portal
+                  {isSuperAdmin ? "Super Admin" : "Admin Portal"}
                 </Link>
               )}
               <Link

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAdminApplicationsList } from "@/features/admin";
+import { getAdminApplicationsList } from "@/features/admin/queries";
 
 export const metadata = {
   title: "Application Activity | DevPair Admin",

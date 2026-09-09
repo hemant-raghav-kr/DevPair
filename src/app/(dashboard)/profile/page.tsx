@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ProfileContainer } from "@/features/profiles";
 import type { UserSkillWithDetails, Skill, ProficiencyLevel } from "@/features/skills";
 
+import { checkIsBanned } from "@/lib/auth/admin";
+
 export const metadata = {
   title: "Profile | DevPair",
   description: "Manage your DevPair student profile, bio, links, and technical skills.",
@@ -17,6 +19,11 @@ export default async function ProfilePage() {
 
   if (!user) {
     redirect("/login?next=/profile");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch current user profile

@@ -6,6 +6,8 @@ import {
   RecommendedProjectsSection,
 } from "@/features/matching";
 
+import { checkIsBanned } from "@/lib/auth/admin";
+
 export const metadata = {
   title: "Dashboard | DevPair",
   description: "DevPair Student Dashboard with ML project recommendations and activity.",
@@ -19,6 +21,11 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect("/login?next=/dashboard");
+  }
+
+  const banStatus = await checkIsBanned(user.id);
+  if (banStatus.banned) {
+    redirect("/banned");
   }
 
   // Fetch the automatic profile provisioned by handle_new_user() trigger
