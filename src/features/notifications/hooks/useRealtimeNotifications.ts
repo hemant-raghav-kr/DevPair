@@ -54,45 +54,20 @@ export function useRealtimeNotifications({
     }
   }, [userId]);
 
-  // Set up Realtime listener and load data
+  const hasFetchedInitialRef = useRef(Boolean(initialNotifications.length));
+
+  // Fetch initial notifications if not provided
+  useEffect(() => {
+    if (!userId || hasFetchedInitialRef.current) return;
+    hasFetchedInitialRef.current = true;
+    fetchNotifications();
+  }, [userId, fetchNotifications]);
+
+  // Set up Realtime listener
   useEffect(() => {
     if (!userId) return;
     const supabase = supabaseRef.current;
     let isCancelled = false;
-
-    // Fetch initial list if we don't have initialNotifications
-    if (!initialNotifications.length) {
-      (async () => {
-        try {
-          const [notifsRes, countRes] = await Promise.all([
-            supabase
-              .from("notifications")
-              .select("*")
-              .order("created_at", { ascending: false })
-              .limit(50),
-            supabase
-              .from("notifications")
-              .select("id", { count: "exact", head: true })
-              .eq("read", false),
-          ]);
-
-          if (isCancelled) return;
-
-          if (!notifsRes.error && notifsRes.data) {
-            setNotifications(notifsRes.data as Notification[]);
-          }
-          if (!countRes.error && typeof countRes.count === "number") {
-            setUnreadCount(countRes.count);
-          }
-        } catch (err) {
-          console.error("Failed to fetch notifications:", err);
-        } finally {
-          if (!isCancelled) {
-            setIsLoading(false);
-          }
-        }
-      })();
-    }
 
     // Use unique channel topic per component instance to prevent collisions
     // when multiple components (e.g., NotificationBell + NotificationsContainer) mount concurrently
@@ -167,7 +142,7 @@ export function useRealtimeNotifications({
       isCancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [userId, hookId, initialNotifications.length]);
+  }, [userId, hookId]);
 
   // Mark single as read
   const markAsRead = useCallback(
