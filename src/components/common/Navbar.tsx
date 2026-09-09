@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/common/SignOutButton";
+import { NotificationBell } from "@/features/notifications";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -79,6 +80,7 @@ export async function Navbar() {
               >
                 Discover
               </Link>
+              <NotificationBell userId={user.id} />
               <SignOutButton />
             </div>
           ) : (
