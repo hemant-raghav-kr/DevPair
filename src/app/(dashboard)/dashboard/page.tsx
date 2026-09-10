@@ -53,7 +53,7 @@ export default async function DashboardPage() {
             Active Student Session
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Welcome back, {profile?.full_name || profile?.username || "Student"}
+            Welcome back, {profile?.full_name?.trim() || profile?.username || "Student"}
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Discover peer projects, manage applications, and collaborate with college developers.

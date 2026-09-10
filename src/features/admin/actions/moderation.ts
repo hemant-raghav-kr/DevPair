@@ -148,6 +148,28 @@ export async function promoteStudentToAdminAction({
       };
     }
 
+    // Protection: Cannot promote the canonical Super Admin
+    if (userId === CANONICAL_SUPER_ADMIN_UUID) {
+      return {
+        success: false,
+        error: "User is already the canonical Super Admin.",
+      };
+    }
+
+    // Check if user is already an active admin to prevent duplicate notifications on retry
+    const { data: existingAdmin } = await adminSupabase
+      .from("admin_users")
+      .select("user_id, is_active, role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingAdmin && existingAdmin.is_active && existingAdmin.role === "admin") {
+      return {
+        success: false,
+        error: "User is already an active administrator.",
+      };
+    }
+
     // Upsert into admin_users with role = 'admin' (only 'admin' can be created)
     const { error: upsertError } = await adminSupabase.from("admin_users").upsert(
       {
@@ -162,6 +184,21 @@ export async function promoteStudentToAdminAction({
     if (upsertError) {
       console.error("[Promote Admin Error]:", upsertError);
       return { success: false, error: upsertError.message };
+    }
+
+    // Create exactly ONE notification for the promoted user
+    if (userId !== superAdminContext.user.id) {
+      const { error: notifError } = await adminSupabase.from("notifications").insert({
+        user_id: userId,
+        type: "general",
+        title: "You're now an Admin",
+        message: "You have been promoted to Admin on DevPair.",
+        read: false,
+      });
+
+      if (notifError) {
+        console.error("[Promote Admin Notification Error]:", notifError);
+      }
     }
 
     revalidatePath("/admin/admins");
@@ -231,7 +268,7 @@ export async function demoteAdminAction({
   userId: string;
 }): Promise<{ success: boolean; error: string | null }> {
   try {
-    await requireSuperAdmin();
+    const superAdminContext = await requireSuperAdmin();
     const adminSupabase = createAdminClient();
 
     if (!userId) {
@@ -278,6 +315,21 @@ export async function demoteAdminAction({
     if (deleteError) {
       console.error("[Demote Admin Error]:", deleteError);
       return { success: false, error: deleteError.message };
+    }
+
+    // Create exactly ONE notification for the demoted user
+    if (userId !== superAdminContext.user.id) {
+      const { error: notifError } = await adminSupabase.from("notifications").insert({
+        user_id: userId,
+        type: "general",
+        title: "Admin access removed",
+        message: "Your Admin role on DevPair has been removed. You are now a Student.",
+        read: false,
+      });
+
+      if (notifError) {
+        console.error("[Demote Admin Notification Error]:", notifError);
+      }
     }
 
     revalidatePath("/admin/admins");
