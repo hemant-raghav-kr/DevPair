@@ -4,6 +4,7 @@ import { SignOutButton } from "@/components/common/SignOutButton";
 import { NotificationBell } from "@/features/notifications";
 import { checkIsAdmin, checkIsSuperAdmin } from "@/lib/auth/admin";
 import { MobileNav } from "@/components/common/MobileNav";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -79,9 +80,11 @@ export async function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <span className="hidden md:inline-block text-xs font-mono text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate">
                 {user.email}
               </span>

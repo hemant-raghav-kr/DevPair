@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SignOutButton } from "./SignOutButton";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface MobileNavProps {
   userEmail?: string | null;
@@ -101,6 +102,11 @@ export function MobileNav({ userEmail, isAdmin, isSuperAdmin }: MobileNavProps) 
               </Link>
             )}
           </nav>
+
+          <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between px-3">
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Appearance</span>
+            <ThemeToggle showLabel />
+          </div>
 
           <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
             <SignOutButton />

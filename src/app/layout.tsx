@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/common/Navbar";
+import { ThemeProvider } from "@/components/common/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,12 +28,23 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('devpair-theme');var t=s==='light'?'light':'dark';var r=document.documentElement;if(t==='dark'){r.classList.add('dark');r.classList.remove('light');}else{r.classList.remove('dark');r.classList.add('light');}r.setAttribute('data-theme',t);r.style.colorScheme=t;}catch(e){var r=document.documentElement;r.classList.add('dark');r.setAttribute('data-theme','dark');r.style.colorScheme='dark';}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-        <Navbar />
-        <div className="flex-1 flex flex-col">{children}</div>
+        <ThemeProvider>
+          <Navbar />
+          <div className="flex-1 flex flex-col">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+
