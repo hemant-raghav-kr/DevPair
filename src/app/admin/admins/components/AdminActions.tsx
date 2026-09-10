@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { toggleAdminActiveAction, removeAdminAction } from "@/features/admin";
+import { useRouter } from "next/navigation";
+import { toggleAdminActiveAction, demoteAdminAction } from "@/features/admin";
 
 interface AdminActionsProps {
   userId: string;
@@ -9,6 +10,7 @@ interface AdminActionsProps {
   isActive: boolean;
   isCanonical: boolean;
   isViewerSuperAdmin: boolean;
+  onFeedback?: (type: "success" | "error", message: string) => void;
 }
 
 export function AdminActions({
@@ -17,8 +19,10 @@ export function AdminActions({
   isActive,
   isCanonical,
   isViewerSuperAdmin,
+  onFeedback,
 }: AdminActionsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleToggle = async () => {
     const actionName = isActive ? "deactivate" : "activate";
@@ -30,28 +34,61 @@ export function AdminActions({
       setIsLoading(true);
       const res = await toggleAdminActiveAction({ userId, isActive: !isActive });
       if (!res.success) {
-        alert(res.error || `Failed to ${actionName} admin.`);
+        const errorMsg = res.error || `Failed to ${actionName} admin.`;
+        if (onFeedback) {
+          onFeedback("error", errorMsg);
+        } else {
+          alert(errorMsg);
+        }
+      } else {
+        if (onFeedback) {
+          onFeedback("success", `Administrator @${username} has been ${isActive ? "deactivated" : "activated"}.`);
+        }
+        router.refresh();
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : `Failed to ${actionName} admin.`);
+      const errorMsg = err instanceof Error ? err.message : `Failed to ${actionName} admin.`;
+      if (onFeedback) {
+        onFeedback("error", errorMsg);
+      } else {
+        alert(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRemove = async () => {
-    if (!confirm(`Are you sure you want to completely REVOKE admin privileges from @${username}?`)) {
+  const handleDemote = async () => {
+    if (!confirm(`Are you sure you want to demote this admin to a student?`)) {
       return;
     }
 
     try {
       setIsLoading(true);
-      const res = await removeAdminAction({ userId });
+      const res = await demoteAdminAction({ userId });
       if (!res.success) {
-        alert(res.error || "Failed to remove admin.");
+        const errorMsg = res.error || "Failed to demote admin.";
+        if (onFeedback) {
+          onFeedback("error", errorMsg);
+        } else {
+          alert(errorMsg);
+        }
+      } else {
+        if (onFeedback) {
+          onFeedback(
+            "success",
+            `Successfully demoted @${username} to Student. User account and profile remain intact.`
+          );
+        }
+        router.refresh();
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to remove admin.");
+      const errorMsg = err instanceof Error ? err.message : "Failed to demote admin.";
+      if (onFeedback) {
+        onFeedback("error", errorMsg);
+      } else {
+        alert(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -86,12 +123,14 @@ export function AdminActions({
 
       <button
         type="button"
-        onClick={handleRemove}
+        onClick={handleDemote}
         disabled={isLoading}
-        className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors disabled:opacity-50"
+        title={`Demote @${username} to Student`}
+        className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors disabled:opacity-50"
       >
-        Revoke
+        Demote to Student
       </button>
     </div>
   );
 }
+

@@ -47,7 +47,7 @@ export async function banStudentAction({
     if (adminRecord) {
       return {
         success: false,
-        error: "Cannot ban an active administrator. Revoke admin privileges first.",
+        error: "Cannot ban an active administrator. Demote admin to student first.",
       };
     }
 
@@ -220,11 +220,12 @@ export async function toggleAdminActiveAction({
 }
 
 /**
- * Remove admin privileges completely from a user.
+ * Demote a subordinate administrator back to normal Student by revoking their admin privilege.
+ * The user's underlying auth account, student profile, projects, applications, and skills remain intact.
  * STRICTLY RESTRICTED TO SUPER ADMIN.
- * Cannot remove canonical super admin.
+ * Cannot demote canonical super admin.
  */
-export async function removeAdminAction({
+export async function demoteAdminAction({
   userId,
 }: {
   userId: string;
@@ -237,11 +238,35 @@ export async function removeAdminAction({
       return { success: false, error: "User ID is required." };
     }
 
-    // Protection: Canonical super admin cannot be removed
+    // Protection: Canonical super admin cannot be demoted or removed
     if (userId === CANONICAL_SUPER_ADMIN_UUID) {
       return {
         success: false,
-        error: "Cannot remove privileges from the canonical Super Admin.",
+        error: "Cannot demote the canonical Super Admin.",
+      };
+    }
+
+    // Ensure target admin exists
+    const { data: targetAdmin, error: targetError } = await adminSupabase
+      .from("admin_users")
+      .select("user_id, role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (targetError) {
+      console.error("[Demote Admin Fetch Error]:", targetError);
+      return { success: false, error: targetError.message };
+    }
+
+    if (!targetAdmin) {
+      return { success: false, error: "User is not an administrator." };
+    }
+
+    // Protection: Cannot demote a super_admin
+    if (targetAdmin.role === "super_admin" || targetAdmin.user_id === CANONICAL_SUPER_ADMIN_UUID) {
+      return {
+        success: false,
+        error: "Cannot demote a Super Admin.",
       };
     }
 
@@ -251,15 +276,22 @@ export async function removeAdminAction({
       .eq("user_id", userId);
 
     if (deleteError) {
-      console.error("[Remove Admin Error]:", deleteError);
+      console.error("[Demote Admin Error]:", deleteError);
       return { success: false, error: deleteError.message };
     }
 
     revalidatePath("/admin/admins");
     revalidatePath("/admin/users");
+    revalidatePath("/admin");
     return { success: true, error: null };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Failed to remove admin";
+    const message = err instanceof Error ? err.message : "Failed to demote admin";
     return { success: false, error: message };
   }
 }
+
+/**
+ * Backwards compatibility alias for demoteAdminAction.
+ */
+export const removeAdminAction = demoteAdminAction;
+

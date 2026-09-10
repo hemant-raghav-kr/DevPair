@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   banStudentAction,
   unbanStudentAction,
   promoteStudentToAdminAction,
+  demoteAdminAction,
 } from "@/features/admin";
 
 interface UserModerationActionsProps {
@@ -31,6 +33,7 @@ export function UserModerationActions({
   const [reason, setReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleBan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,9 +83,29 @@ export function UserModerationActions({
       const res = await promoteStudentToAdminAction({ userId });
       if (!res.success) {
         alert(res.error || "Failed to promote student to admin.");
+      } else {
+        router.refresh();
       }
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Error executing promotion");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemote = async () => {
+    if (!confirm(`Are you sure you want to demote this admin to a student?`)) return;
+
+    try {
+      setIsLoading(true);
+      const res = await demoteAdminAction({ userId });
+      if (!res.success) {
+        alert(res.error || "Failed to demote admin.");
+      } else {
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error executing demotion");
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +150,18 @@ export function UserModerationActions({
           className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors disabled:opacity-50"
         >
           + Admin
+        </button>
+      )}
+
+      {isViewerSuperAdmin && isAdmin && !isCanonical && (
+        <button
+          type="button"
+          onClick={handleDemote}
+          disabled={isLoading}
+          title="Demote subordinate admin to student"
+          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50"
+        >
+          Demote
         </button>
       )}
 

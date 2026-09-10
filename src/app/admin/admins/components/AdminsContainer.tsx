@@ -12,6 +12,7 @@ interface AdminsContainerProps {
 
 export function AdminsContainer({ admins, isViewerSuperAdmin }: AdminsContainerProps) {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   return (
     <div className="space-y-6">
@@ -41,6 +42,29 @@ export function AdminsContainer({ admins, isViewerSuperAdmin }: AdminsContainerP
           </button>
         )}
       </div>
+
+      {/* Feedback Banner */}
+      {feedback && (
+        <div
+          className={`p-4 rounded-2xl flex items-center justify-between text-xs font-medium border animate-in fade-in duration-150 ${
+            feedback.type === "success"
+              ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
+              : "bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-bold">{feedback.type === "success" ? "✓" : "⚠"}</span>
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            className="hover:opacity-70 text-[11px] underline ml-4 font-semibold shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Admins Table */}
       <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
@@ -134,6 +158,7 @@ export function AdminsContainer({ admins, isViewerSuperAdmin }: AdminsContainerP
                       isActive={a.is_active}
                       isCanonical={a.isCanonical}
                       isViewerSuperAdmin={isViewerSuperAdmin}
+                      onFeedback={(type, message) => setFeedback({ type, message })}
                     />
                   </td>
                 </tr>
