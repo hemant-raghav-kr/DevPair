@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getAppUrl } from "@/lib/utils";
@@ -139,9 +140,16 @@ function SignupForm() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8 bg-zinc-50 dark:bg-zinc-950">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-xl shadow-md">
-            DP
-          </div>
+          <Link href="/" className="inline-block transition-transform hover:scale-105" title="DevPair Home">
+            <Image
+              src="/brand/devpair-icon.png"
+              alt="DevPair"
+              width={48}
+              height={48}
+              className="h-12 w-12 object-contain rounded-xl shadow-xs mx-auto"
+              priority
+            />
+          </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Create your account
           </h1>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/common/SignOutButton";
 import { NotificationBell } from "@/features/notifications";
@@ -21,12 +22,17 @@ export async function Navbar() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-2 font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50"
+            className="flex items-center gap-2.5 font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50 group"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-extrabold text-sm shadow-sm">
-              DP
-            </span>
-            <span>DevPair</span>
+            <Image
+              src="/brand/devpair-icon.png"
+              alt="DevPair Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain rounded-lg shadow-2xs transition-transform group-hover:scale-105"
+              priority
+            />
+            <span className="tracking-tight">DevPair</span>
           </Link>
 
           <nav className="hidden sm:flex items-center gap-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
@@ -91,13 +97,20 @@ export async function Navbar() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-colors ${
+                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-colors flex items-center gap-1.5 ${
                     isSuperAdmin
                       ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-900 hover:bg-purple-100 dark:hover:bg-purple-900/50"
                       : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/50"
                   }`}
                 >
-                  {isSuperAdmin ? "Super Admin" : "Admin Portal"}
+                  <Image
+                    src={isSuperAdmin ? "/brand/devpair-super-admin-icon.png" : "/brand/devpair-admin-icon.png"}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="h-3.5 w-3.5 object-contain rounded-xs"
+                  />
+                  <span>{isSuperAdmin ? "Super Admin" : "Admin Portal"}</span>
                 </Link>
               )}
               <NotificationBell userId={user.id} />

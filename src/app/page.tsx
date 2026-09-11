@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
@@ -10,8 +11,16 @@ export default async function HomePage() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-2xl w-full space-y-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-          DevPair Platform
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+          <Image
+            src="/brand/devpair-icon.png"
+            alt=""
+            width={16}
+            height={16}
+            className="h-4 w-4 object-contain rounded-xs"
+            priority
+          />
+          <span>DevPair Platform</span>
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">

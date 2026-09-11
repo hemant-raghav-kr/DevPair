@@ -18,6 +18,15 @@ export const metadata: Metadata = {
   title: "DevPair | Find Teammates for Projects & Hackathons",
   description:
     "A platform where college students find teammates for projects and hackathons based on skills, interests, and availability.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/brand/favicon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/brand/favicon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

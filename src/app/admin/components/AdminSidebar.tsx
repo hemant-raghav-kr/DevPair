@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/common/SignOutButton";
 import type { AdminRole } from "@/lib/auth/admin";
@@ -58,7 +59,7 @@ export function AdminSidebar({
       exact: false,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
       ),
     },
@@ -66,6 +67,7 @@ export function AdminSidebar({
       label: "Complaints",
       href: "/admin/complaints",
       exact: false,
+      badge: pendingComplaintsCount > 0 ? pendingComplaintsCount : undefined,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -73,7 +75,7 @@ export function AdminSidebar({
       ),
     },
     {
-      label: "Admins",
+      label: "Administrators",
       href: "/admin/admins",
       exact: false,
       icon: (
@@ -88,16 +90,16 @@ export function AdminSidebar({
     <>
       {/* Mobile top bar */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-zinc-950 text-white border-b border-zinc-800">
-        <div className="flex items-center gap-2 font-bold text-base">
-          <span
-            className={`flex h-7 w-7 items-center justify-center rounded-lg text-white font-extrabold text-xs ${
-              isSuperAdmin ? "bg-purple-600" : "bg-red-600"
-            }`}
-          >
-            {isSuperAdmin ? "SUP" : "ADM"}
-          </span>
-          <span>DevPair Admin</span>
-        </div>
+        <Link href="/admin" className="flex items-center gap-2">
+          <Image
+            src={isSuperAdmin ? "/brand/devpair-super-admin-logo.png" : "/brand/devpair-admin-logo.png"}
+            alt={isSuperAdmin ? "DevPair Super Admin" : "DevPair Admin"}
+            width={120}
+            height={38}
+            className="h-7 w-auto object-contain"
+            priority
+          />
+        </Link>
         <button
           type="button"
           onClick={() => setMobileOpen((prev) => !prev)}
@@ -122,28 +124,17 @@ export function AdminSidebar({
       >
         <div className="space-y-6">
           {/* Brand header */}
-          <div className="hidden lg:flex items-center gap-3 px-2">
-            <span
-              className={`flex h-8 w-8 items-center justify-center rounded-lg text-white font-extrabold text-sm shadow-md ${
-                isSuperAdmin
-                  ? "bg-purple-600 shadow-purple-900/40"
-                  : "bg-red-600 shadow-red-900/40"
-              }`}
-            >
-              {isSuperAdmin ? "SUP" : "ADM"}
-            </span>
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight leading-tight">
-                DevPair Admin
-              </h2>
-              <span
-                className={`text-[10px] uppercase font-bold tracking-wider ${
-                  isSuperAdmin ? "text-purple-400" : "text-red-400"
-                }`}
-              >
-                {isSuperAdmin ? "Super Admin Portal" : "Privileged Portal"}
-              </span>
-            </div>
+          <div className="hidden lg:flex items-center px-1">
+            <Link href="/admin" className="block group">
+              <Image
+                src={isSuperAdmin ? "/brand/devpair-super-admin-logo.png" : "/brand/devpair-admin-logo.png"}
+                alt={isSuperAdmin ? "DevPair Super Admin" : "DevPair Admin"}
+                width={180}
+                height={57}
+                className="h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                priority
+              />
+            </Link>
           </div>
 
           {/* Navigation Links */}
@@ -194,27 +185,43 @@ export function AdminSidebar({
         <div className="pt-6 border-t border-zinc-800/80 space-y-4">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors group"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
+            <Image
+              src="/brand/devpair-icon.png"
+              alt=""
+              width={16}
+              height={16}
+              className="h-4 w-4 object-contain rounded-xs shrink-0"
+            />
             <span>Return to DevPair</span>
           </Link>
 
-          <div className="px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/50">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
-                {isSuperAdmin ? "Super Admin" : "Administrator"}
-              </span>
-              {isSuperAdmin && (
-                <span className="text-xs text-amber-500" title="Super Administrator">
-                  ★
+          <div className="px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/50 flex items-center gap-2.5">
+            <Image
+              src={isSuperAdmin ? "/brand/devpair-super-admin-icon.png" : "/brand/devpair-admin-icon.png"}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain rounded-lg shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
+                  {isSuperAdmin ? "Super Admin" : "Administrator"}
                 </span>
-              )}
-            </div>
-            <div className="text-xs font-mono text-zinc-300 truncate mt-0.5">
-              {adminEmail}
+                {isSuperAdmin && (
+                  <span className="text-xs text-amber-400 font-bold" title="Super Administrator">
+                    ★
+                  </span>
+                )}
+              </div>
+              <div className="text-xs font-mono text-zinc-300 truncate mt-0.5">
+                {adminEmail}
+              </div>
             </div>
           </div>
 
