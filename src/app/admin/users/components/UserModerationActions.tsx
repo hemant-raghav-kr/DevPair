@@ -142,14 +142,6 @@ export function UserModerationActions({
     }
   };
 
-  if (isCanonical) {
-    return (
-      <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-        Canonical Super Admin
-      </span>
-    );
-  }
-
   return (
     <div className="flex items-center justify-end gap-1.5">
       {/* Revoke Cooldown Action Button */}
@@ -165,48 +157,56 @@ export function UserModerationActions({
         </button>
       )}
 
-      {isBanned ? (
-        <button
-          type="button"
-          onClick={handleUnban}
-          disabled={isLoading}
-          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors disabled:opacity-50"
-        >
-          Unban
-        </button>
+      {isCanonical ? (
+        <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+          Canonical Super Admin
+        </span>
       ) : (
-        <button
-          type="button"
-          onClick={() => setShowBanModal(true)}
-          disabled={isLoading || isAdmin}
-          title={isAdmin ? "Admins cannot be banned directly. Demote first." : "Ban student"}
-          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors disabled:opacity-40"
-        >
-          Ban
-        </button>
-      )}
+        <>
+          {isBanned ? (
+            <button
+              type="button"
+              onClick={handleUnban}
+              disabled={isLoading}
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+            >
+              Unban
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowBanModal(true)}
+              disabled={isLoading || isAdmin}
+              title={isAdmin ? "Admins cannot be banned directly. Demote first." : "Ban student"}
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors disabled:opacity-40"
+            >
+              Ban
+            </button>
+          )}
 
-      {isViewerSuperAdmin && !isAdmin && !isBanned && (
-        <button
-          type="button"
-          onClick={handlePromote}
-          disabled={isLoading}
-          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors disabled:opacity-50"
-        >
-          + Admin
-        </button>
-      )}
+          {isViewerSuperAdmin && !isAdmin && !isBanned && (
+            <button
+              type="button"
+              onClick={handlePromote}
+              disabled={isLoading}
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors disabled:opacity-50"
+            >
+              + Admin
+            </button>
+          )}
 
-      {isViewerSuperAdmin && isAdmin && !isCanonical && (
-        <button
-          type="button"
-          onClick={handleDemote}
-          disabled={isLoading}
-          title="Demote subordinate admin to student"
-          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50"
-        >
-          Demote
-        </button>
+          {isViewerSuperAdmin && isAdmin && (
+            <button
+              type="button"
+              onClick={handleDemote}
+              disabled={isLoading}
+              title="Demote subordinate admin to student"
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50"
+            >
+              Demote
+            </button>
+          )}
+        </>
       )}
 
       {/* Revoke Cooldown Modal */}
