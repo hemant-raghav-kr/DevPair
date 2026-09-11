@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { checkIsBanned } from "@/lib/auth/admin";
 import { SignOutButton } from "@/components/common/SignOutButton";
+import { BannedAppealSection } from "./BannedAppealSection";
+import type { RestrictionRevokeRequest } from "@/types";
 
 export const metadata = {
   title: "Account Suspended | DevPair",
@@ -23,6 +25,31 @@ export default async function BannedPage() {
   if (!banStatus.banned) {
     redirect("/dashboard");
   }
+
+  // Fetch latest ban appeal request
+  const { data: latestRaw } = await supabase
+    .from("restriction_revoke_requests")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("restriction_type", "ban")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const latestRequest: RestrictionRevokeRequest | null = latestRaw
+    ? {
+        id: latestRaw.id,
+        userId: latestRaw.user_id,
+        restrictionType: latestRaw.restriction_type as "ban",
+        status: latestRaw.status as "pending" | "approved" | "rejected",
+        reason: latestRaw.reason,
+        reviewedBy: latestRaw.reviewed_by,
+        reviewedAt: latestRaw.reviewed_at,
+        reviewReason: latestRaw.review_reason,
+        createdAt: latestRaw.created_at,
+        updatedAt: latestRaw.updated_at,
+      }
+    : null;
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-950">
@@ -56,9 +83,7 @@ export default async function BannedPage() {
           )}
         </div>
 
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          If you believe this restriction was made in error, please contact your university DevPair team or administrator.
-        </p>
+        <BannedAppealSection initialRequest={latestRequest} />
 
         <div className="pt-2">
           <SignOutButton />
@@ -67,3 +92,4 @@ export default async function BannedPage() {
     </main>
   );
 }
+

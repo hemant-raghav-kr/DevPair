@@ -45,6 +45,42 @@ const eventTypeStyles: Record<
       "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-900",
     dotClass: "bg-rose-500",
   },
+  ban_revocation_requested: {
+    label: "Ban Appeal Requested",
+    badgeClass:
+      "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
+    dotClass: "bg-indigo-500",
+  },
+  ban_revocation_approved: {
+    label: "Ban Appeal Approved",
+    badgeClass:
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    dotClass: "bg-emerald-500",
+  },
+  ban_revocation_rejected: {
+    label: "Ban Appeal Rejected",
+    badgeClass:
+      "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-900",
+    dotClass: "bg-rose-500",
+  },
+  cooldown_revocation_requested: {
+    label: "Cooldown Appeal Requested",
+    badgeClass:
+      "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800",
+    dotClass: "bg-sky-500",
+  },
+  cooldown_revocation_approved: {
+    label: "Cooldown Appeal Approved",
+    badgeClass:
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    dotClass: "bg-emerald-500",
+  },
+  cooldown_revocation_rejected: {
+    label: "Cooldown Appeal Rejected",
+    badgeClass:
+      "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-900",
+    dotClass: "bg-rose-500",
+  },
 };
 
 export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLogsPageProps) {
@@ -68,6 +104,8 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
     { id: "withdrawal_cooldown_created", label: "Cooldown Created" },
     { id: "withdrawal_cooldown_revoked", label: "Cooldown Revoked" },
     { id: "team_member_removed", label: "Member Removed" },
+    { id: "ban_revocation_requested", label: "Ban Appeals" },
+    { id: "cooldown_revocation_requested", label: "Cooldown Appeals" },
   ];
 
   return (

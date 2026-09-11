@@ -105,7 +105,29 @@ export type AuditEventType =
   | "application_withdrawn"
   | "withdrawal_cooldown_created"
   | "team_member_removed"
-  | "withdrawal_cooldown_revoked";
+  | "withdrawal_cooldown_revoked"
+  | "ban_revocation_requested"
+  | "ban_revocation_approved"
+  | "ban_revocation_rejected"
+  | "cooldown_revocation_requested"
+  | "cooldown_revocation_approved"
+  | "cooldown_revocation_rejected";
+
+export type RestrictionType = "ban" | "cooldown";
+export type RevocationRequestStatus = "pending" | "approved" | "rejected";
+
+export interface RestrictionRevokeRequest {
+  id: string;
+  userId: string;
+  restrictionType: RestrictionType;
+  status: RevocationRequestStatus;
+  reason: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface AuditLog {
   id: string;

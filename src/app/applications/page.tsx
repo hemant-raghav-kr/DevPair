@@ -126,11 +126,37 @@ export default async function MyApplicationsPage() {
     .limit(1)
     .maybeSingle();
 
+  // Fetch latest cooldown revocation request if any
+  const { data: latestCooldownRaw } = await supabase
+    .from("restriction_revoke_requests")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("restriction_type", "cooldown")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const latestCooldownRequest = latestCooldownRaw
+    ? {
+        id: latestCooldownRaw.id,
+        userId: latestCooldownRaw.user_id,
+        restrictionType: latestCooldownRaw.restriction_type as "cooldown",
+        status: latestCooldownRaw.status as "pending" | "approved" | "rejected",
+        reason: latestCooldownRaw.reason,
+        reviewedBy: latestCooldownRaw.reviewed_by,
+        reviewedAt: latestCooldownRaw.reviewed_at,
+        reviewReason: latestCooldownRaw.review_reason,
+        createdAt: latestCooldownRaw.created_at,
+        updatedAt: latestCooldownRaw.updated_at,
+      }
+    : null;
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <MyApplicationsContainer
         initialApplications={formattedApplications}
         initialActiveCooldownUntil={activeCooldown?.cooldown_until || null}
+        initialCooldownRevokeRequest={latestCooldownRequest}
       />
     </main>
   );

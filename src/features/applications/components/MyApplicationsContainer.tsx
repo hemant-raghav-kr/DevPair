@@ -3,11 +3,14 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { ApplicationCard } from "./ApplicationCard";
+import { CooldownRevocationSection } from "./CooldownRevocationSection";
 import type { ApplicationWithDetails, ApplicationStatus } from "../types";
+import type { RestrictionRevokeRequest } from "@/types";
 
 interface MyApplicationsContainerProps {
   initialApplications: ApplicationWithDetails[];
   initialActiveCooldownUntil?: string | null;
+  initialCooldownRevokeRequest?: RestrictionRevokeRequest | null;
 }
 
 type FilterTab = "all" | ApplicationStatus;
@@ -15,6 +18,7 @@ type FilterTab = "all" | ApplicationStatus;
 export function MyApplicationsContainer({
   initialApplications,
   initialActiveCooldownUntil,
+  initialCooldownRevokeRequest,
 }: MyApplicationsContainerProps) {
   const [applications, setApplications] =
     useState<ApplicationWithDetails[]>(initialApplications);
@@ -68,31 +72,12 @@ export function MyApplicationsContainer({
         </Link>
       </div>
 
-      {/* Global Active Cooldown Warning Banner */}
+      {/* Global Active Cooldown Warning Banner & Revocation Appeal */}
       {isCooldownActive && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-                Application Cooldown Active
-              </p>
-              <p className="text-xs text-amber-800/90 dark:text-amber-300/90 mt-0.5">
-                You are currently on a withdrawal cooldown. You can apply to projects again after{" "}
-                <strong className="font-semibold text-amber-950 dark:text-amber-100">
-                  {new Date(activeCooldownUntil!).toLocaleString(undefined, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
-                </strong>.
-              </p>
-            </div>
-          </div>
-        </div>
+        <CooldownRevocationSection
+          activeCooldownUntil={activeCooldownUntil!}
+          initialRequest={initialCooldownRevokeRequest}
+        />
       )}
 
       {/* Filter Tabs */}

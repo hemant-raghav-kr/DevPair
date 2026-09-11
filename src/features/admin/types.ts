@@ -139,3 +139,29 @@ export interface AdminAuditLogItem {
     title: string;
   } | null;
 }
+
+export interface AdminRevocationRequestItem {
+  id: string;
+  userId: string;
+  restrictionType: "ban" | "cooldown";
+  status: "pending" | "approved" | "rejected";
+  reason: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  reviewReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    full_name: string;
+    username: string;
+    email: string | null;
+    avatar_url: string | null;
+  };
+  reviewer?: {
+    id: string;
+    full_name: string;
+    username: string;
+  } | null;
+}
+

@@ -14,6 +14,7 @@ import type {
   AdminProjectItem,
   AdminApplicationItem,
   AdminAuditLogItem,
+  AdminRevocationRequestItem,
   PaginatedResult,
 } from "./types";
 import type { AuditEventType } from "@/types";
@@ -682,3 +683,170 @@ export async function getAdminAuditLogs({
     totalPages,
   };
 }
+
+/**
+ * Get count of pending restriction revocation requests (for badge display).
+ */
+export async function getPendingRevocationCount(): Promise<number> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("restriction_revoke_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (error) {
+    console.error("[getPendingRevocationCount Error]", error);
+    return 0;
+  }
+  return count || 0;
+}
+
+/**
+ * Fetch summary statistics for the Revocation Requests queue.
+ */
+export async function getRevocationRequestStats(): Promise<{
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  bans: number;
+  cooldowns: number;
+}> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const [totalRes, pendingRes, approvedRes, rejectedRes, bansRes, cooldownsRes] =
+    await Promise.all([
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }),
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }).eq("status", "approved"),
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }).eq("status", "rejected"),
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }).eq("restriction_type", "ban"),
+      supabase.from("restriction_revoke_requests").select("id", { count: "exact", head: true }).eq("restriction_type", "cooldown"),
+    ]);
+
+  return {
+    total: totalRes.count || 0,
+    pending: pendingRes.count || 0,
+    approved: approvedRes.count || 0,
+    rejected: rejectedRes.count || 0,
+    bans: bansRes.count || 0,
+    cooldowns: cooldownsRes.count || 0,
+  };
+}
+
+/**
+ * Fetch paginated list of revocation requests with student and reviewer info.
+ */
+export async function getRevocationRequests({
+  status,
+  restrictionType,
+  search = "",
+  page = 1,
+  pageSize = 20,
+}: {
+  status?: string;
+  restrictionType?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<PaginatedResult<AdminRevocationRequestItem>> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("restriction_revoke_requests")
+    .select("*", { count: "exact" });
+
+  if (status && status !== "all") {
+    query = query.eq("status", status);
+  }
+
+  if (restrictionType && restrictionType !== "all") {
+    query = query.eq("restriction_type", restrictionType);
+  }
+
+  const trimmedSearch = search.trim();
+  if (trimmedSearch) {
+    query = query.ilike("reason", `%${trimmedSearch}%`);
+  }
+
+  const { data: requests, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error || !requests) {
+    console.error("[Admin Revocation Requests Query Error]", error);
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const userIds = Array.from(
+    new Set(
+      requests
+        .flatMap((r) => [r.user_id, r.reviewed_by])
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  const { data: profiles } =
+    userIds.length > 0
+      ? await supabase
+          .from("profiles")
+          .select("id, full_name, username, avatar_url")
+          .in("id", userIds)
+      : { data: [] };
+
+  const profileMap = new Map<
+    string,
+    { id: string; full_name: string; username: string; avatar_url: string | null }
+  >();
+  profiles?.forEach((p) => profileMap.set(p.id, p));
+
+  const total = count || 0;
+  const totalPages = Math.ceil(total / pageSize);
+
+  const data: AdminRevocationRequestItem[] = requests.map((req) => {
+    const userProf = profileMap.get(req.user_id);
+    const reviewerProf = req.reviewed_by ? profileMap.get(req.reviewed_by) : null;
+
+    return {
+      id: req.id,
+      userId: req.user_id,
+      restrictionType: req.restriction_type as "ban" | "cooldown",
+      status: req.status as "pending" | "approved" | "rejected",
+      reason: req.reason,
+      reviewedBy: req.reviewed_by,
+      reviewedAt: req.reviewed_at,
+      reviewReason: req.review_reason,
+      createdAt: req.created_at,
+      updatedAt: req.updated_at,
+      user: {
+        id: req.user_id,
+        full_name: userProf?.full_name || "Unknown Student",
+        username: userProf?.username || "unknown",
+        email: null,
+        avatar_url: userProf?.avatar_url || null,
+      },
+      reviewer: reviewerProf
+        ? {
+            id: reviewerProf.id,
+            full_name: reviewerProf.full_name,
+            username: reviewerProf.username,
+          }
+        : null,
+    };
+  });
+
+  return {
+    data,
+    total,
+    page,
+    pageSize,
+    totalPages,
+  };
+}
+

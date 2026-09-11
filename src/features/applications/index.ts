@@ -12,4 +12,5 @@ export * from "./components/OwnerApplicationCard";
 export * from "./components/ProjectApplicationsContainer";
 export * from "./components/WithdrawModal";
 export * from "./components/RemoveMemberModal";
+export * from "./components/CooldownRevocationSection";
 export * from "./actions";
