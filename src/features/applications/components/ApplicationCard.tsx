@@ -126,13 +126,13 @@ export function ApplicationCard({
               variant="subtle"
             />
 
-            {application.status === "pending" && (
+            {(application.status === "pending" || application.status === "accepted") && (
               <button
                 type="button"
                 onClick={() => setIsWithdrawModalOpen(true)}
                 className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
               >
-                Withdraw Application
+                {application.status === "accepted" ? "Withdraw from Project" : "Withdraw Application"}
               </button>
             )}
           </div>
@@ -147,6 +147,7 @@ export function ApplicationCard({
           applicationId={application.id}
           projectTitle={application.project?.title || "Project"}
           roleTitle={application.role?.title}
+          isAccepted={application.status === "accepted"}
           onSuccess={(cooldownUntil) => {
             if (cooldownUntil) {
               setLocalCooldown(cooldownUntil);

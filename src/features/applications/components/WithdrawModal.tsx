@@ -9,6 +9,7 @@ interface WithdrawModalProps {
   applicationId: string;
   projectTitle: string;
   roleTitle?: string;
+  isAccepted?: boolean;
   onSuccess: (cooldownUntil?: string) => void;
 }
 
@@ -18,6 +19,7 @@ export function WithdrawModal({
   applicationId,
   projectTitle,
   roleTitle,
+  isAccepted = false,
   onSuccess,
 }: WithdrawModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +61,7 @@ export function WithdrawModal({
             </div>
             <div>
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                Withdraw Application?
+                {isAccepted ? "Withdraw from Project?" : "Withdraw Application?"}
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {projectTitle} {roleTitle ? `• ${roleTitle}` : ""}
@@ -83,7 +85,15 @@ export function WithdrawModal({
             Important Cooldown Notice
           </p>
           <p className="leading-relaxed">
-            Withdrawing will place you on a <strong>3-day cooldown</strong> during which you cannot apply to any project.
+            {isAccepted ? (
+              <>
+                Withdrawing from this project will remove you from the active team, reopen your role slot, and place you on a <strong>3-day cooldown</strong> during which you cannot apply to any project.
+              </>
+            ) : (
+              <>
+                Withdrawing will place you on a <strong>3-day cooldown</strong> during which you cannot apply to any project.
+              </>
+            )}
           </p>
           <p className="text-[11px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
             Your application record will remain visible in your history as &quot;Withdrawn&quot;.
@@ -122,7 +132,7 @@ export function WithdrawModal({
                 <span>Withdrawing...</span>
               </>
             ) : (
-              <span>Withdraw Application</span>
+              <span>{isAccepted ? "Withdraw from Project" : "Withdraw Application"}</span>
             )}
           </button>
         </div>

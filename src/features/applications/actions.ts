@@ -36,7 +36,7 @@ export async function withdrawApplicationAction({
     // Retrieve application
     const { data: application, error: fetchErr } = await supabase
       .from("applications")
-      .select("id, project_id, applicant_id, role_id, status, projects(id, title)")
+      .select("id, project_id, applicant_id, role_id, status, projects(id, title, owner_id)")
       .eq("id", applicationId)
       .maybeSingle();
 
@@ -49,12 +49,21 @@ export async function withdrawApplicationAction({
       return { success: false, error: "You can only withdraw your own applications." };
     }
 
-    if (application.status !== "pending") {
+    // Project owner protection: project owner cannot withdraw from their own project ownership
+    const project = application.projects as { id?: string; title?: string; owner_id?: string } | null;
+    if (project && project.owner_id === user.id) {
+      return { success: false, error: "Project owners cannot withdraw from their own projects." };
+    }
+
+    // Allowed statuses: 'pending' or 'accepted'
+    if (application.status !== "pending" && application.status !== "accepted") {
       return {
         success: false,
         error: `Cannot withdraw an application that is already ${application.status}.`,
       };
     }
+
+    const wasAccepted = application.status === "accepted";
 
     // Update application to 'withdrawn'
     const adminClient = createAdminClient();
@@ -87,7 +96,9 @@ export async function withdrawApplicationAction({
       project_id: application.project_id,
       application_id: application.id,
       cooldown_until: cooldownUntil,
-      reason: "Voluntary application withdrawal",
+      reason: wasAccepted
+        ? "Voluntary team member withdrawal"
+        : "Voluntary application withdrawal",
     });
 
     // Retrieve student name and project title for audit log
@@ -98,8 +109,7 @@ export async function withdrawApplicationAction({
       .maybeSingle();
 
     const studentName = profile?.full_name?.trim() || profile?.username || "Student";
-    const projectTitle =
-      (application.projects as { title?: string } | null)?.title || "Project";
+    const projectTitle = project?.title || "Project";
 
     // Audit Log A: application_withdrawn
     await adminClient.from("audit_logs").insert({
@@ -109,7 +119,10 @@ export async function withdrawApplicationAction({
       project_id: application.project_id,
       application_id: application.id,
       role_id: application.role_id,
-      description: `${studentName} withdrew their application from ${projectTitle}.`,
+      description: wasAccepted
+        ? `${studentName} withdrew from ${projectTitle} (left team).`
+        : `${studentName} withdrew their application from ${projectTitle}.`,
+      metadata: { was_accepted: wasAccepted },
     });
 
     // Audit Log B: withdrawal_cooldown_created
@@ -120,12 +133,13 @@ export async function withdrawApplicationAction({
       project_id: application.project_id,
       application_id: application.id,
       description: `3-day withdrawal cooldown created for ${studentName}.`,
-      metadata: { cooldown_until: cooldownUntil },
+      metadata: { cooldown_until: cooldownUntil, was_accepted: wasAccepted },
     });
 
     revalidatePath("/applications");
     revalidatePath("/dashboard");
     revalidatePath(`/projects/${application.project_id}`);
+    revalidatePath(`/projects/${application.project_id}/applications`);
 
     return { success: true, error: null, cooldownUntil };
   } catch (err: unknown) {
