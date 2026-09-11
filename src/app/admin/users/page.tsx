@@ -160,24 +160,41 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                       </div>
                     </td>
 
-                    {/* Status (Active / Banned) */}
+                    {/* Status (Active / Banned / Cooldown) */}
                     <td className="px-4 py-3.5 text-xs">
-                      {u.isBanned ? (
-                        <div className="space-y-0.5">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-900">
-                            Banned
+                      <div className="space-y-1">
+                        {u.isBanned ? (
+                          <div className="space-y-0.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-900">
+                              Banned
+                            </span>
+                            {u.banReason && (
+                              <div className="text-[10px] text-zinc-400 max-w-[140px] truncate" title={u.banReason}>
+                                {u.banReason}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                            Active
                           </span>
-                          {u.banReason && (
-                            <div className="text-[10px] text-zinc-400 max-w-[140px] truncate" title={u.banReason}>
-                              {u.banReason}
+                        )}
+
+                        {u.activeCooldown && (
+                          <div>
+                            <span
+                              title={`Cooldown active until ${new Date(u.activeCooldown.cooldownUntil).toLocaleString()}`}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 whitespace-nowrap"
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              <span>Cooldown Active</span>
+                            </span>
+                            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono mt-0.5">
+                              until {new Date(u.activeCooldown.cooldownUntil).toLocaleDateString([], { month: "short", day: "numeric" })} {new Date(u.activeCooldown.cooldownUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
-                          Active
-                        </span>
-                      )}
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {/* Role */}
@@ -213,6 +230,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                         isAdmin={u.isAdmin}
                         isViewerSuperAdmin={adminContext.isSuperAdmin}
                         isCanonical={isCanonical}
+                        hasActiveCooldown={Boolean(u.activeCooldown)}
+                        cooldownUntil={u.activeCooldown?.cooldownUntil || null}
                       />
                     </td>
                   </tr>

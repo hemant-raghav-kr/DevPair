@@ -115,9 +115,23 @@ export default async function MyApplicationsPage() {
     };
   });
 
+  // Fetch active cooldown for student if any
+  const { data: activeCooldown } = await supabase
+    .from("withdrawal_cooldowns")
+    .select("cooldown_until")
+    .eq("user_id", user.id)
+    .is("revoked_at", null)
+    .gt("cooldown_until", new Date().toISOString())
+    .order("cooldown_until", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <MyApplicationsContainer initialApplications={formattedApplications} />
+      <MyApplicationsContainer
+        initialApplications={formattedApplications}
+        initialActiveCooldownUntil={activeCooldown?.cooldown_until || null}
+      />
     </main>
   );
 }

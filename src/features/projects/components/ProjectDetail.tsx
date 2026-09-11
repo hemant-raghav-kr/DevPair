@@ -23,6 +23,7 @@ interface ProjectDetailProps {
   roleAcceptedCounts?: Record<string, number>;
   userRoleApplicationStatuses?: Record<string, ApplicationStatus | null>;
   totalApplicationsCount?: number;
+  activeCooldownUntil?: string | null;
 }
 
 const statusStyles: Record<ProjectStatus, string> = {
@@ -54,6 +55,7 @@ export function ProjectDetail({
   roleAcceptedCounts = {},
   userRoleApplicationStatuses = {},
   totalApplicationsCount = 0,
+  activeCooldownUntil,
 }: ProjectDetailProps) {
   const [applyingRole, setApplyingRole] = useState<ProjectRoleWithSkill | null>(null);
   const [appStatuses, setAppStatuses] = useState<Record<string, ApplicationStatus | null>>(
@@ -277,6 +279,31 @@ export function ProjectDetail({
         </div>
       </div>
 
+      {/* Active Cooldown Banner */}
+      {Boolean(activeCooldownUntil) && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-start gap-3">
+          <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
+              Application Cooldown Active
+            </p>
+            <p className="text-xs text-amber-800/90 dark:text-amber-300/90 mt-0.5">
+              You are currently on a withdrawal cooldown. You can apply again after{" "}
+              <strong className="font-semibold text-amber-950 dark:text-amber-100">
+                {new Date(activeCooldownUntil!).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </strong>.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Required Roles Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -310,6 +337,7 @@ export function ProjectDetail({
                 userApplicationStatus={appStatuses[role.id]}
                 onApply={() => setApplyingRole(role)}
                 isAuthenticated={Boolean(currentUserId)}
+                activeCooldownUntil={activeCooldownUntil}
               />
             ))}
           </div>
@@ -373,6 +401,7 @@ export function ProjectDetail({
           project={{ id: project.id, title: project.title }}
           role={applyingRole}
           applicantId={currentUserId}
+          activeCooldownUntil={activeCooldownUntil}
           onSuccess={handleApplySuccess}
         />
       )}

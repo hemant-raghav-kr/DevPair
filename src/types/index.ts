@@ -83,7 +83,12 @@ export interface Project {
   updatedAt: string;
 }
 
-export type ApplicationStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+export type ApplicationStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "withdrawn"
+  | "removed";
 
 export interface ProjectApplication {
   id: string;
@@ -92,6 +97,39 @@ export interface ProjectApplication {
   roleApplied: string;
   message: string;
   status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AuditEventType =
+  | "application_withdrawn"
+  | "withdrawal_cooldown_created"
+  | "team_member_removed"
+  | "withdrawal_cooldown_revoked";
+
+export interface AuditLog {
+  id: string;
+  eventType: AuditEventType;
+  actorUserId: string;
+  targetUserId?: string | null;
+  projectId?: string | null;
+  applicationId?: string | null;
+  roleId?: string | null;
+  description: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface WithdrawalCooldown {
+  id: string;
+  userId: string;
+  projectId?: string | null;
+  applicationId?: string | null;
+  cooldownUntil: string;
+  reason?: string | null;
+  revokedAt?: string | null;
+  revokedBy?: string | null;
+  revocationReason?: string | null;
   createdAt: string;
   updatedAt: string;
 }

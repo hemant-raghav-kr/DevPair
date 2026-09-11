@@ -65,8 +65,15 @@ export function ProjectApplicationsContainer({
 
   const handleStatusUpdate = async (
     appId: string,
-    newStatus: "accepted" | "rejected"
+    newStatus: "accepted" | "rejected" | "removed"
   ) => {
+    if (newStatus === "removed") {
+      setApplications((prev) =>
+        prev.map((app) => (app.id === appId ? { ...app, status: "removed" } : app))
+      );
+      return;
+    }
+
     setUpdatingAppId(appId);
     try {
       const { error } = await supabase
@@ -168,6 +175,7 @@ export function ProjectApplicationsContainer({
             { id: "accepted", label: "Accepted" },
             { id: "rejected", label: "Declined" },
             { id: "withdrawn", label: "Withdrawn" },
+            { id: "removed", label: "Removed" },
           ] as { id: FilterTab; label: string }[]
         ).map((tab) => {
           const isActive = activeTab === tab.id;
@@ -241,6 +249,7 @@ export function ProjectApplicationsContainer({
                   <OwnerApplicationCard
                     key={app.id}
                     application={app}
+                    projectTitle={project.title}
                     roleCapacity={capacity}
                     onStatusUpdate={handleStatusUpdate}
                     isUpdating={updatingAppId === app.id}
@@ -272,6 +281,7 @@ export function ProjectApplicationsContainer({
               <OwnerApplicationCard
                 key={app.id}
                 application={app}
+                projectTitle={project.title}
                 roleCapacity={{ slots: 99, acceptedCount: 0 }}
                 onStatusUpdate={handleStatusUpdate}
                 isUpdating={updatingAppId === app.id}

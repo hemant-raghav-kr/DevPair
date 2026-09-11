@@ -61,58 +61,167 @@ export type Database = {
           role?: string
           user_id?: string
         }
+        Relationships: []
+      }
+      applications: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          id: string
+          message: string
+          project_id: string
+          role_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          id?: string
+          message: string
+          project_id: string
+          role_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          project_id?: string
+          role_id?: string | null
+          status?: string
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "admin_users_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "applications_applicant_id_fkey"
+            columns: ["applicant_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "admin_users_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
+            foreignKeyName: "applications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "project_roles"
             referencedColumns: ["id"]
           },
         ]
       }
-      user_bans: {
+      audit_logs: {
         Row: {
-          banned: boolean
-          banned_at: string
-          banned_by: string | null
-          ban_reason: string
+          actor_user_id: string
+          application_id: string | null
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          project_id: string | null
+          role_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          actor_user_id: string
+          application_id?: string | null
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          role_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string
+          application_id?: string | null
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          role_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "project_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookmarks: {
+        Row: {
+          created_at: string
+          project_id: string
           user_id: string
         }
         Insert: {
-          banned?: boolean
-          banned_at?: string
-          banned_by?: string | null
-          ban_reason: string
+          created_at?: string
+          project_id: string
           user_id: string
         }
         Update: {
-          banned?: boolean
-          banned_at?: string
-          banned_by?: string | null
-          ban_reason?: string
+          created_at?: string
+          project_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "user_bans_banned_by_fkey"
-            columns: ["banned_by"]
+            foreignKeyName: "bookmarks_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_bans_user_id_fkey"
+            foreignKeyName: "bookmarks_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -188,107 +297,12 @@ export type Database = {
             foreignKeyName: "complaints_reported_user_id_fkey"
             columns: ["reported_user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "complaints_reporter_id_fkey"
             columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "complaints_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      applications: {
-        Row: {
-          applicant_id: string
-          created_at: string
-          id: string
-          message: string
-          project_id: string
-          role_id: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          applicant_id: string
-          created_at?: string
-          id?: string
-          message: string
-          project_id: string
-          role_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          applicant_id?: string
-          created_at?: string
-          id?: string
-          message?: string
-          project_id?: string
-          role_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "applications_applicant_id_fkey"
-            columns: ["applicant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "project_roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bookmarks: {
-        Row: {
-          created_at: string
-          project_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          project_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          project_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookmarks_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookmarks_user_id_fkey"
-            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -338,6 +352,13 @@ export type Database = {
             columns: ["related_application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_related_complaint_id_fkey"
+            columns: ["related_complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
             referencedColumns: ["id"]
           },
           {
@@ -538,6 +559,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_bans: {
+        Row: {
+          ban_reason: string
+          banned: boolean
+          banned_at: string
+          banned_by: string | null
+          user_id: string
+        }
+        Insert: {
+          ban_reason: string
+          banned?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          user_id: string
+        }
+        Update: {
+          ban_reason?: string
+          banned?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_skills: {
         Row: {
           created_at: string
@@ -574,12 +619,85 @@ export type Database = {
           },
         ]
       }
+      withdrawal_cooldowns: {
+        Row: {
+          application_id: string | null
+          cooldown_until: string
+          created_at: string
+          id: string
+          project_id: string | null
+          reason: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          cooldown_until: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          reason?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          cooldown_until?: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          reason?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_cooldowns_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_cooldowns_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_cooldowns_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_cooldowns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { check_user_id?: string }; Returns: boolean }
+      is_banned: { Args: { check_user_id?: string }; Returns: boolean }
+      is_super_admin: { Args: { check_user_id?: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

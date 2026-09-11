@@ -13,8 +13,10 @@ import type {
   AdminListItem,
   AdminProjectItem,
   AdminApplicationItem,
+  AdminAuditLogItem,
   PaginatedResult,
 } from "./types";
+import type { AuditEventType } from "@/types";
 
 /**
  * Fetch high-level platform metrics for the Admin Overview dashboard.
@@ -155,7 +157,7 @@ export async function getAdminUsersList({
   const userIds = profiles.map((p) => p.id);
 
   // Fetch relational aggregates for this page of users
-  const [skillsRes, projectsRes, appsRes, adminsRes, bansRes, authUsersRes] = await Promise.all([
+  const [skillsRes, projectsRes, appsRes, adminsRes, bansRes, authUsersRes, cooldownsRes] = await Promise.all([
     supabase
       .from("user_skills")
       .select("user_id")
@@ -178,6 +180,13 @@ export async function getAdminUsersList({
       .in("user_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"])
       .eq("banned", true),
     supabase.auth.admin.listUsers({ perPage: 1000 }),
+    supabase
+      .from("withdrawal_cooldowns")
+      .select("id, user_id, cooldown_until, project_id, created_at")
+      .in("user_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"])
+      .is("revoked_at", null)
+      .gt("cooldown_until", new Date().toISOString())
+      .order("cooldown_until", { ascending: false }),
   ]);
 
   const skillCounts = new Map<string, number>();
@@ -216,9 +225,25 @@ export async function getAdminUsersList({
     if (u.email) emailMap.set(u.id, u.email);
   });
 
+  const cooldownMap = new Map<
+    string,
+    { id: string; cooldownUntil: string; projectId: string | null; createdAt: string }
+  >();
+  cooldownsRes.data?.forEach((c) => {
+    if (!cooldownMap.has(c.user_id)) {
+      cooldownMap.set(c.user_id, {
+        id: c.id,
+        cooldownUntil: c.cooldown_until,
+        projectId: c.project_id,
+        createdAt: c.created_at,
+      });
+    }
+  });
+
   const data: AdminUserItem[] = profiles.map((p) => {
     const adminInfo = adminMap.get(p.id);
     const banInfo = banMap.get(p.id);
+    const cooldownInfo = cooldownMap.get(p.id) || null;
 
     return {
       id: p.id,
@@ -238,6 +263,7 @@ export async function getAdminUsersList({
       isBanned: !!banInfo,
       banReason: banInfo ? banInfo.ban_reason : null,
       bannedAt: banInfo ? banInfo.banned_at : null,
+      activeCooldown: cooldownInfo,
     };
   });
 
@@ -551,5 +577,108 @@ export async function getAdminApplicationsList({
     page,
     pageSize,
     totalPages: Math.ceil(total / pageSize),
+  };
+}
+
+/**
+ * Fetch a paginated, filterable list of internal audit logs.
+ * Enforces requireAdmin() server-side.
+ */
+export async function getAdminAuditLogs({
+  page = 1,
+  pageSize = 20,
+  eventType,
+  search = "",
+}: {
+  page?: number;
+  pageSize?: number;
+  eventType?: AuditEventType | "all";
+  search?: string;
+}): Promise<PaginatedResult<AdminAuditLogItem>> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase.from("audit_logs").select("*", { count: "exact" });
+
+  if (eventType && eventType !== "all") {
+    query = query.eq("event_type", eventType);
+  }
+
+  const trimmedSearch = search.trim();
+  if (trimmedSearch) {
+    query = query.ilike("description", `%${trimmedSearch}%`);
+  }
+
+  const { data: logs, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error || !logs) {
+    console.error("[Admin Audit Logs Query Error]", error);
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  // Collect actor, target, and project IDs
+  const userIds = Array.from(
+    new Set(
+      logs
+        .flatMap((l) => [l.actor_user_id, l.target_user_id])
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  const projectIds = Array.from(
+    new Set(logs.map((l) => l.project_id).filter((id): id is string => Boolean(id)))
+  );
+
+  const [profilesRes, projectsRes] = await Promise.all([
+    userIds.length > 0
+      ? supabase
+          .from("profiles")
+          .select("id, full_name, username, avatar_url")
+          .in("id", userIds)
+      : Promise.resolve({ data: [] }),
+    projectIds.length > 0
+      ? supabase.from("projects").select("id, title").in("id", projectIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const profileMap = new Map<
+    string,
+    { id: string; full_name: string; username: string; avatar_url: string | null }
+  >();
+  profilesRes.data?.forEach((p) => profileMap.set(p.id, p));
+
+  const projectMap = new Map<string, { id: string; title: string }>();
+  projectsRes.data?.forEach((p) => projectMap.set(p.id, p));
+
+  const total = count || 0;
+  const totalPages = Math.ceil(total / pageSize);
+
+  const data: AdminAuditLogItem[] = logs.map((log) => ({
+    id: log.id,
+    eventType: log.event_type as AuditEventType,
+    actorUserId: log.actor_user_id,
+    targetUserId: log.target_user_id,
+    projectId: log.project_id,
+    applicationId: log.application_id,
+    roleId: log.role_id,
+    description: log.description,
+    metadata: (log.metadata as Record<string, unknown>) || null,
+    createdAt: log.created_at,
+    actor: log.actor_user_id ? profileMap.get(log.actor_user_id) || null : null,
+    target: log.target_user_id ? profileMap.get(log.target_user_id) || null : null,
+    project: log.project_id ? projectMap.get(log.project_id) || null : null,
+  }));
+
+  return {
+    data,
+    total,
+    page,
+    pageSize,
+    totalPages,
   };
 }

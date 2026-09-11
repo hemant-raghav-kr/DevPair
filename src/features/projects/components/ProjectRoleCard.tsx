@@ -15,6 +15,7 @@ interface ProjectRoleCardProps {
   userApplicationStatus?: ApplicationStatus | null;
   onApply?: () => void;
   isAuthenticated?: boolean;
+  activeCooldownUntil?: string | null;
 }
 
 export function ProjectRoleCard({
@@ -27,6 +28,7 @@ export function ProjectRoleCard({
   userApplicationStatus,
   onApply,
   isAuthenticated = false,
+  activeCooldownUntil,
 }: ProjectRoleCardProps) {
   const openSlots = Math.max(0, role.slots - acceptedCount);
   const isFilled = openSlots === 0;
@@ -121,6 +123,14 @@ export function ProjectRoleCard({
             ) : isFilled ? (
               <span className="text-xs font-semibold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg">
                 Full
+              </span>
+            ) : Boolean(activeCooldownUntil) ? (
+              <span
+                title={`You are currently on a withdrawal cooldown until ${new Date(activeCooldownUntil!).toLocaleString()}`}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 px-2.5 py-1 rounded-lg cursor-not-allowed"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                <span>Cooldown Active</span>
               </span>
             ) : isAuthenticated ? (
               <button

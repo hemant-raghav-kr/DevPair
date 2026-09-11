@@ -7,6 +7,7 @@ import {
   unbanStudentAction,
   promoteStudentToAdminAction,
   demoteAdminAction,
+  revokeCooldownAction,
 } from "@/features/admin";
 
 interface UserModerationActionsProps {
@@ -18,6 +19,8 @@ interface UserModerationActionsProps {
   isAdmin: boolean;
   isViewerSuperAdmin: boolean;
   isCanonical: boolean;
+  hasActiveCooldown?: boolean;
+  cooldownUntil?: string | null;
 }
 
 export function UserModerationActions({
@@ -28,9 +31,13 @@ export function UserModerationActions({
   isAdmin,
   isViewerSuperAdmin,
   isCanonical,
+  hasActiveCooldown = false,
+  cooldownUntil,
 }: UserModerationActionsProps) {
   const [showBanModal, setShowBanModal] = useState(false);
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
   const [reason, setReason] = useState("");
+  const [revokeReason, setRevokeReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -111,6 +118,30 @@ export function UserModerationActions({
     }
   };
 
+  const handleRevokeCooldown = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await revokeCooldownAction({
+        userId,
+        reason: revokeReason.trim() || undefined,
+      });
+
+      if (!res.success) {
+        setError(res.error || "Failed to revoke cooldown.");
+      } else {
+        setShowRevokeModal(false);
+        setRevokeReason("");
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error revoking cooldown");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isCanonical) {
     return (
       <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
@@ -121,6 +152,19 @@ export function UserModerationActions({
 
   return (
     <div className="flex items-center justify-end gap-1.5">
+      {/* Revoke Cooldown Action Button */}
+      {hasActiveCooldown && (
+        <button
+          type="button"
+          onClick={() => setShowRevokeModal(true)}
+          disabled={isLoading}
+          title={`Revoke active cooldown (until ${cooldownUntil ? new Date(cooldownUntil).toLocaleString() : ""})`}
+          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-50"
+        >
+          Revoke Cooldown
+        </button>
+      )}
+
       {isBanned ? (
         <button
           type="button"
@@ -163,6 +207,62 @@ export function UserModerationActions({
         >
           Demote
         </button>
+      )}
+
+      {/* Revoke Cooldown Modal */}
+      {showRevokeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-2xl space-y-4 text-left">
+            <div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                Revoke Withdrawal Cooldown
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Revoke the active 3-day withdrawal cooldown for <strong className="text-zinc-800 dark:text-zinc-200">{fullName}</strong> (@{username}).
+                The student will immediately be able to submit new project join requests.
+              </p>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs border border-rose-200 dark:border-rose-900">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleRevokeCooldown} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-300 mb-1">
+                  Revocation Reason <span className="text-zinc-400 font-normal lowercase">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={revokeReason}
+                  onChange={(e) => setRevokeReason(e.target.value)}
+                  placeholder="e.g. Student withdrew by mistake, granted exception..."
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRevokeModal(false)}
+                  disabled={isLoading}
+                  className="px-4 py-2 text-xs font-medium rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? "Revoking..." : "Revoke Cooldown"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Ban Modal */}

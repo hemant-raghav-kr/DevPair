@@ -1,4 +1,5 @@
 import type { AdminRole } from "@/lib/auth/admin";
+import type { AuditEventType } from "@/types";
 
 export interface AdminOverviewMetrics {
   totalUsers: number;
@@ -34,6 +35,12 @@ export interface AdminUserItem {
   isBanned: boolean;
   banReason: string | null;
   bannedAt: string | null;
+  activeCooldown?: {
+    id: string;
+    cooldownUntil: string;
+    projectId: string | null;
+    createdAt: string;
+  } | null;
 }
 
 export interface AdminListItem {
@@ -102,4 +109,33 @@ export interface PaginatedResult<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface AdminAuditLogItem {
+  id: string;
+  eventType: AuditEventType;
+  actorUserId: string | null;
+  targetUserId: string | null;
+  projectId: string | null;
+  applicationId: string | null;
+  roleId: string | null;
+  description: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  actor?: {
+    id: string;
+    full_name: string;
+    username: string;
+    avatar_url: string | null;
+  } | null;
+  target?: {
+    id: string;
+    full_name: string;
+    username: string;
+    avatar_url: string | null;
+  } | null;
+  project?: {
+    id: string;
+    title: string;
+  } | null;
 }

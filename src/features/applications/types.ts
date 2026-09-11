@@ -6,7 +6,12 @@ export type Application = Database["public"]["Tables"]["applications"]["Row"];
 export type ApplicationInsert = Database["public"]["Tables"]["applications"]["Insert"];
 export type ApplicationUpdate = Database["public"]["Tables"]["applications"]["Update"];
 
-export type ApplicationStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+export type ApplicationStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "withdrawn"
+  | "removed";
 
 export interface ApplicationWithDetails extends Application {
   project: {
@@ -67,5 +72,9 @@ export const APPLICATION_STATUS_LABELS: Record<
   withdrawn: {
     label: "Withdrawn",
     description: "You withdrew this application request.",
+  },
+  removed: {
+    label: "Removed",
+    description: "You were removed from this project team by the project owner.",
   },
 };

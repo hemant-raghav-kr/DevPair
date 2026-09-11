@@ -166,18 +166,35 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   // If user is authenticated and not owner, check if they have applied to any roles on this project
   const userRoleApplicationStatuses: Record<string, ApplicationStatus | null> = {};
-  if (user && !isOwner) {
-    const { data: userApps } = await supabase
-      .from("applications")
-      .select("role_id, status")
-      .eq("project_id", id)
-      .eq("applicant_id", user.id);
+  let activeCooldownUntil: string | null = null;
 
-    (userApps || []).forEach((a) => {
+  if (user && !isOwner) {
+    const [userAppsRes, cooldownRes] = await Promise.all([
+      supabase
+        .from("applications")
+        .select("role_id, status")
+        .eq("project_id", id)
+        .eq("applicant_id", user.id),
+      supabase
+        .from("withdrawal_cooldowns")
+        .select("cooldown_until")
+        .eq("user_id", user.id)
+        .is("revoked_at", null)
+        .gt("cooldown_until", new Date().toISOString())
+        .order("cooldown_until", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    (userAppsRes.data || []).forEach((a) => {
       if (a.role_id) {
         userRoleApplicationStatuses[a.role_id] = a.status as ApplicationStatus;
       }
     });
+
+    if (cooldownRes.data) {
+      activeCooldownUntil = cooldownRes.data.cooldown_until;
+    }
   }
 
   return (
@@ -189,6 +206,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         roleAcceptedCounts={roleAcceptedCounts}
         userRoleApplicationStatuses={userRoleApplicationStatuses}
         totalApplicationsCount={totalApplicationsCount}
+        activeCooldownUntil={activeCooldownUntil}
       />
     </main>
   );

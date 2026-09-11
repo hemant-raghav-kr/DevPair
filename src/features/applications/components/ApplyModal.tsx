@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { applyToProjectAction } from "../actions";
 import { validateApplicationForm } from "../validation";
 import type { ApplicationFormData, ApplicationValidationErrors } from "../types";
 import type { Skill } from "@/features/skills/types";
@@ -19,6 +19,7 @@ interface ApplyModalProps {
     skill?: Skill | null;
   };
   applicantId: string;
+  activeCooldownUntil?: string | null;
   onSuccess: () => void;
 }
 
@@ -27,11 +28,9 @@ export function ApplyModal({
   onClose,
   project,
   role,
-  applicantId,
+  activeCooldownUntil,
   onSuccess,
 }: ApplyModalProps) {
-  const supabase = createClient();
-
   const [formData, setFormData] = useState<ApplicationFormData>({ message: "" });
   const [errors, setErrors] = useState<ApplicationValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,9 +38,22 @@ export function ApplyModal({
 
   if (!isOpen) return null;
 
+  const isCooldownActive = Boolean(activeCooldownUntil);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+
+    if (isCooldownActive) {
+      const expiryFormatted = new Date(activeCooldownUntil!).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      setSubmitError(
+        `You are currently on a withdrawal cooldown. You can apply again after ${expiryFormatted}.`
+      );
+      return;
+    }
 
     const { isValid, errors: validationErrors } = validateApplicationForm(formData);
     if (!isValid) {
@@ -51,35 +63,14 @@ export function ApplyModal({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("applications")
-        .insert({
-          project_id: project.id,
-          role_id: role.id,
-          applicant_id: applicantId,
-          message: formData.message.trim(),
-          status: "pending",
-        })
-        .select()
-        .single();
+      const result = await applyToProjectAction({
+        projectId: project.id,
+        roleId: role.id,
+        message: formData.message,
+      });
 
-      if (error) {
-        if (
-          error.code === "23505" ||
-          error.message?.includes("idx_applications_unique_pending")
-        ) {
-          setSubmitError(
-            "You already have an active pending application for this role on this project."
-          );
-        } else if (
-          error.message?.includes("cannot apply to their own project")
-        ) {
-          setSubmitError("Project owners cannot apply to their own projects.");
-        } else if (error.code === "23514") {
-          setSubmitError("Message must be between 5 and 1000 characters.");
-        } else {
-          setSubmitError(error.message || "Failed to submit application.");
-        }
+      if (!result.success) {
+        setSubmitError(result.error || "Failed to submit application.");
         return;
       }
 
@@ -130,6 +121,29 @@ export function ApplyModal({
           </div>
         )}
 
+        {/* Cooldown Active Warning Box */}
+        {isCooldownActive && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 text-xs border border-amber-200 dark:border-amber-900/50 flex items-start gap-2.5">
+            <svg className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <div>
+              <p className="font-semibold text-amber-950 dark:text-amber-100 mb-0.5">
+                Application Cooldown Active
+              </p>
+              <p className="leading-relaxed">
+                You are currently on a withdrawal cooldown. You can apply again after{" "}
+                <strong>
+                  {new Date(activeCooldownUntil!).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error Alert */}
         {submitError && (
           <div className="p-3.5 rounded-xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 text-xs border border-red-200 dark:border-red-900/50 flex items-start gap-2">
@@ -164,6 +178,7 @@ export function ApplyModal({
               id="apply-message"
               rows={5}
               required
+              disabled={isCooldownActive || isSubmitting}
               value={formData.message}
               onChange={(e) => {
                 setFormData({ message: e.target.value });
@@ -171,7 +186,7 @@ export function ApplyModal({
                 setSubmitError(null);
               }}
               placeholder={`Hi! I'm interested in the ${role.title} role. I have experience with ${role.skill?.name || "these technologies"} and would love to contribute to this project because...`}
-              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 p-3.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-y"
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 p-3.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-y disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {errors.message ? (
               <p className="text-xs text-red-600 dark:text-red-400">{errors.message}</p>
@@ -193,8 +208,8 @@ export function ApplyModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-xs transition-colors disabled:opacity-50"
+              disabled={isSubmitting || isCooldownActive}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -204,6 +219,8 @@ export function ApplyModal({
                   </svg>
                   <span>Submitting...</span>
                 </>
+              ) : isCooldownActive ? (
+                <span>Cooldown Active</span>
               ) : (
                 <span>Submit Application</span>
               )}
